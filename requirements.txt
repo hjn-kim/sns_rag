@@ -39,14 +39,20 @@
 # --- cpu_translator.py ---------------------------------------------------
 deep-translator>=1.9.1
 
-# --- gpu_translator.py ---------------------------------------------------
-# 5.x 로 열어두지 않는다. transformers 5 는 torch.distributed.tensor 의 DTensor 를
-# 쓰는데 그 경로는 torch 2.5 부터 생겼다. RunPod 팟은 드라이버에 맞춰 torch 2.4 를
-# 쓰는 경우가 많고, 그때 5.x 를 깔면 모델 로드에서 이렇게 터진다:
-#   ImportError: cannot import name 'DTensor'
-# torch 를 올려 맞추려다 드라이버보다 새 CUDA 빌드가 들어오면 GPU 를 통째로 잃는다.
-# transformers 4.x 는 torch 2.4/2.5 양쪽에서 다 도니 이쪽을 고정한다.
-transformers>=4.56,<5
+# --- gpu_translator.py / embedding.py ------------------------------------
+# torch 2.4 팟에서는 transformers 를 4.51.x 로 고정해야 한다. 위아래로 다 막힌다.
+#
+#   4.51 미만  임베딩 모델(microsoft/harrier-oss-v1-0.6b)이 Qwen3 인데
+#              qwen3 지원이 4.51.0 에 처음 들어갔다. 4.50 에는 아키텍처가 없다.
+#   4.52 이상  CVE-2025-32434 때문에 torch 2.6 미만에서 .bin 체크포인트 로딩을
+#              막는다. NLLB 공식 저장소는 전부 pytorch_model.bin 뿐이라 걸린다:
+#                ValueError: ... require users to upgrade torch to at least v2.6
+#   5.x       torch.distributed.tensor 의 DTensor 를 쓰는데 그 경로는 torch 2.5
+#              부터 생겼다: ImportError: cannot import name 'DTensor'
+#
+# torch 를 2.6 이상으로 올리면 이 제약이 다 풀리지만, 드라이버보다 새 CUDA 빌드가
+# 들어오면 GPU 를 통째로 잃는다. torch 를 고정하고 transformers 를 맞추는 쪽이 안전하다.
+transformers>=4.51,<4.52
 tqdm>=4.66
 
 # NLLB 토크나이저(SentencePiece). 저장소에 fast 토크나이저가 없는 모델을 쓸 때 필요하다.
@@ -57,6 +63,10 @@ protobuf>=3.20
 #   pip install hf_transfer && export HF_HUB_ENABLE_HF_TRANSFER=1
 # hf_transfer>=0.1.6
 
-# --- src/embedding.py 까지 돌릴 때만 (선택) ------------------------------
-# numpy>=1.24
-# sentence-transformers>=3.0
+# --- embedding.py --------------------------------------------------------
+# sentence-transformers 를 따로 설치하면 transformers 를 최신으로 끌어올려
+# 위의 4.51 고정이 풀린다. 반드시 이 파일로 같이 설치하거나, 개별 설치할 때
+# transformers 를 함께 명시할 것:
+#   pip install "sentence-transformers" "transformers==4.51.3"
+numpy>=1.24
+sentence-transformers>=3.0
