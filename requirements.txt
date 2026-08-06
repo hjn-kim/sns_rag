@@ -1,0 +1,37 @@
+# 메신저 RAG - 번역기 의존성
+#
+#   pip install -r requirements.txt
+#
+#   src/cpu_translator.py   Google 무료 API (deep-translator). GPU 불필요
+#   src/gpu_translator.py   NLLB-200 로컬 추론 (torch/transformers)
+#
+# RunPod 에서:
+#   PyTorch 템플릿에는 CUDA 빌드 torch 가 이미 깔려 있다. 아래 torch 줄은 하한만
+#   두었으므로 조건을 만족하면 pip 가 건드리지 않는다. 만약 템플릿 torch 가 2.5 보다
+#   낮아 업그레이드가 걸리면 PyPI 기본 휠(리눅스=CUDA 빌드)로 바뀌니, 팟의 CUDA 와
+#   맞추려면 먼저 이렇게 따로 깔고 이 파일을 설치한다:
+#     pip install torch --index-url https://download.pytorch.org/whl/cu124
+#   설치 후 확인:
+#     python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+
+# --- cpu_translator.py ---------------------------------------------------
+deep-translator>=1.9.1
+
+# --- gpu_translator.py ---------------------------------------------------
+# transformers 5.x 는 torch.distributed.tensor 를 쓰므로 torch 2.5 이상이어야 한다.
+# (낮은 torch 에서 DTensor ImportError 가 나면 'transformers<5' 로 낮춰도 된다)
+torch>=2.5
+transformers>=4.56
+tqdm>=4.66
+
+# NLLB 토크나이저(SentencePiece). 저장소에 fast 토크나이저가 없는 모델을 쓸 때 필요하다.
+sentencepiece>=0.1.99
+protobuf>=3.20
+
+# 5.5GB 모델을 빨리 받으려면 (선택)
+#   pip install hf_transfer && export HF_HUB_ENABLE_HF_TRANSFER=1
+# hf_transfer>=0.1.6
+
+# --- src/embedding.py 까지 돌릴 때만 (선택) ------------------------------
+# numpy>=1.24
+# sentence-transformers>=3.0
