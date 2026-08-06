@@ -1,0 +1,11 @@
+{
+  "text": "Oliwatobi: Обина прислала тебе это?\nRichie: Мы сделали это на его системе\nRichie: Мой аккумулятор отключился, так что я переключился на его, чтобы закончить.",
+  "dialogueID": "s0033",
+  "startedAt": "2020-01-01 12:11:00",
+  "endedAt": "2020-01-01 12:44:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    "Oliwatobi",
+    "Richie"
+  ]
+}

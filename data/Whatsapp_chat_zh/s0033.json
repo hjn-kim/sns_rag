@@ -1,0 +1,11 @@
+{
+  "text": "Oliwatobi: 奥比纳给你发了这个吗?\nRichie: 我们在他的系统上做了.\nRichie: 我的电池掉了,所以我切换了他的电池.",
+  "dialogueID": "s0033",
+  "startedAt": "2020-01-01 12:11:00",
+  "endedAt": "2020-01-01 12:44:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    "Oliwatobi",
+    "Richie"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "text": "Oliwatobi: 오빈나가 이걸 보냈나?\nRichie: 그의 시스템에서 해봤어요\nRichie: 내 컴퓨터의 배터리가 끊어졌어요",
+  "dialogueID": "s0033",
+  "startedAt": "2020-01-01 12:11:00",
+  "endedAt": "2020-01-01 12:44:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    "Oliwatobi",
+    "Richie"
+  ]
+}
