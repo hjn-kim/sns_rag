@@ -40,7 +40,13 @@
 deep-translator>=1.9.1
 
 # --- gpu_translator.py ---------------------------------------------------
-transformers>=4.56
+# 5.x 로 열어두지 않는다. transformers 5 는 torch.distributed.tensor 의 DTensor 를
+# 쓰는데 그 경로는 torch 2.5 부터 생겼다. RunPod 팟은 드라이버에 맞춰 torch 2.4 를
+# 쓰는 경우가 많고, 그때 5.x 를 깔면 모델 로드에서 이렇게 터진다:
+#   ImportError: cannot import name 'DTensor'
+# torch 를 올려 맞추려다 드라이버보다 새 CUDA 빌드가 들어오면 GPU 를 통째로 잃는다.
+# transformers 4.x 는 torch 2.4/2.5 양쪽에서 다 도니 이쪽을 고정한다.
+transformers>=4.56,<5
 tqdm>=4.66
 
 # NLLB 토크나이저(SentencePiece). 저장소에 fast 토크나이저가 없는 모델을 쓸 때 필요하다.
