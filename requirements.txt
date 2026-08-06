@@ -1,35 +1,45 @@
 # 메신저 RAG - 번역기 의존성
 #
-#   pip install -r requirements.txt
-#
 #   src/cpu_translator.py   Google 무료 API (deep-translator). GPU 불필요
 #   src/gpu_translator.py   NLLB-200 로컬 추론 (torch/transformers)
 #
-# RunPod 에서:
-#   PyTorch 템플릿에는 CUDA 빌드 torch 가 이미 깔려 있다. 아래 torch 줄은 하한만
-#   두었으므로 조건을 만족하면 pip 가 건드리지 않는다. 만약 템플릿 torch 가 2.5 보다
-#   낮아 업그레이드가 걸리면 PyPI 기본 휠(리눅스=CUDA 빌드)로 바뀌니, 팟의 CUDA 와
-#   맞추려면 먼저 이렇게 따로 깔고 이 파일을 설치한다:
-#     pip install torch --index-url https://download.pytorch.org/whl/cu124
-#   설치 후 확인:
-#     python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+# ==========================================================================
+# torch 는 일부러 넣지 않았다. pip 에게 맡기면 GPU 환경이 깨진다
+# ==========================================================================
 #
-#   torch 가 업그레이드되면 팟에 딸려 있던 torchvision/torchaudio 는 옛 torch 로
-#   빌드된 채 남아 어긋난다. 그 상태로 모델을 올리면 이렇게 터진다:
+#   pip 가 PyPI 기본 torch 휠을 깔면 드라이버보다 새 CUDA 로 빌드된 것이 올 수 있다.
+#   그러면 GPU 를 아예 못 잡고 조용히 CPU 로 떨어진다:
+#     CUDA initialization: The NVIDIA driver on your system is too old (found version 12080)
+#     장치  : cpu / float32
+#   (12080 = 드라이버가 지원하는 CUDA 12.8. 그보다 새 빌드는 못 돌린다)
+#
+#   그래서 torch 는 드라이버에 맞춰 직접 깐다. 드라이버 확인:
+#     nvidia-smi | head -3          # CUDA Version 을 본다
+#   그 버전에 맞는 인덱스에서 설치 (12.8 이면 cu128, 12.4 면 cu124 ...):
+#     pip install torch --index-url https://download.pytorch.org/whl/cu128
+#   확인 - 세 번째 값이 True 여야 한다:
+#     python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+#
+#   transformers 5.x 는 torch.distributed.tensor 를 쓰므로 torch 2.5 이상이어야 한다.
+#   더 낮은 torch 를 써야 하면 DTensor ImportError 가 나므로 'transformers<5' 로 낮춘다.
+#
+#   torch 를 바꾸면 팟에 딸려 있던 torchvision/torchaudio 는 옛 torch 로 빌드된 채
+#   남아 어긋난다. 그 상태로 모델을 올리면 이렇게 터진다:
 #     RuntimeError: operator torchvision::nms does not exist
 #     ModuleNotFoundError: Could not import module 'M2M100ForConditionalGeneration'
-#   번역에는 둘 다 안 쓰이고 transformers 는 없으면 건너뛰므로 지우는 게 제일 간단하다:
+#   번역에는 둘 다 안 쓰이고 transformers 는 없으면 건너뛴다. 지우는 게 제일 간단하다:
 #     pip uninstall -y torchvision torchaudio
-#   팟의 다른 작업 때문에 남겨야 하면 torch 버전에 맞춰 다시 깐다:
-#     pip install --force-reinstall torchvision --index-url https://download.pytorch.org/whl/cu124
+#   팟의 다른 작업 때문에 남겨야 하면 torch 와 같은 인덱스에서 다시 깐다:
+#     pip install --force-reinstall torchvision --index-url https://download.pytorch.org/whl/cu128
+#
+# --------------------------------------------------------------------------
+# torch 를 확인한 뒤:  pip install -r requirements.txt
+# --------------------------------------------------------------------------
 
 # --- cpu_translator.py ---------------------------------------------------
 deep-translator>=1.9.1
 
 # --- gpu_translator.py ---------------------------------------------------
-# transformers 5.x 는 torch.distributed.tensor 를 쓰므로 torch 2.5 이상이어야 한다.
-# (낮은 torch 에서 DTensor ImportError 가 나면 'transformers<5' 로 낮춰도 된다)
-torch>=2.5
 transformers>=4.56
 tqdm>=4.66
 
