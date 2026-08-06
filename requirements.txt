@@ -13,6 +13,15 @@
 #     pip install torch --index-url https://download.pytorch.org/whl/cu124
 #   설치 후 확인:
 #     python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+#
+#   torch 가 업그레이드되면 팟에 딸려 있던 torchvision/torchaudio 는 옛 torch 로
+#   빌드된 채 남아 어긋난다. 그 상태로 모델을 올리면 이렇게 터진다:
+#     RuntimeError: operator torchvision::nms does not exist
+#     ModuleNotFoundError: Could not import module 'M2M100ForConditionalGeneration'
+#   번역에는 둘 다 안 쓰이고 transformers 는 없으면 건너뛰므로 지우는 게 제일 간단하다:
+#     pip uninstall -y torchvision torchaudio
+#   팟의 다른 작업 때문에 남겨야 하면 torch 버전에 맞춰 다시 깐다:
+#     pip install --force-reinstall torchvision --index-url https://download.pytorch.org/whl/cu124
 
 # --- cpu_translator.py ---------------------------------------------------
 deep-translator>=1.9.1
