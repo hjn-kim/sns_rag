@@ -1,0 +1,18 @@
+{
+  "text": "P01: Obinna sent this to you?\nP02: We did it on his system\nP02: My pc battery went off so i switch to his to finish",
+  "dialogueID": "s0033",
+  "startedAt": "2020-01-01 12:11:00",
+  "endedAt": "2020-01-01 12:44:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U06"
+    }
+  ],
+  "speakerLabel": true
+}

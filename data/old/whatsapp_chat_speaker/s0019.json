@@ -1,0 +1,18 @@
+{
+  "text": "P01: Good morning everyone\nP01: Please I need you guys assistance. Does anyone know how I can get sample questions of IKM test for data analytics role?. Thanks\nP02: Never heard of IKM test, sorry",
+  "dialogueID": "s0019",
+  "startedAt": "2019-12-10 11:48:00",
+  "endedAt": "2019-12-10 15:28:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U15"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U01"
+    }
+  ],
+  "speakerLabel": true
+}

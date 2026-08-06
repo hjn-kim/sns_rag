@@ -1,0 +1,46 @@
+{
+  "text": "P01: Good evening house. Firstly, I want to thank very much those who've contributed to this project and those who've joined us to try their hands on automation in Power BI. We have the aggregated data that will be made available on the website shortly (I'm working to get it online right now).. From this point forward, you will be able to create a nice data model, details of which I'll also include a post tomorrow. For those that understand how to generate the schema in Excel, I invite you to try to generate one from all the MDAs and begin creating some visualisations.. Also, sorry to disappoint some of you but the next workshop will on *Friday, 6th December*. *Rise Networks* has agreed to host us but this will be for Friday and it is themed\nP02: Thanks for the update Tobi\nP03: Interesting but will there be videos for those of us that left the state😊\nP01: You're welcome\nP04: Thanks for the update💪💪. Looking forward to the next workshop\nP01: Ah hmm. #@전번# can we make this work?\nP01: Great! You're welcome Azeez\nP05: Thanks for the update #@전번# .. Looking forward to it .\nP06: Great.... good job Tobi and John\nP03: Pls@U03 make it work ohh.. We are loyal students 😊\nP07: Great\nP01: Awesome.\nP01: Thank you bro.\nP08: #@전번# please I do not understand the last statement, please explain more.. You mean that people who will be available on that Friday will create visuals or do you mean that they are coming to explain their already created visuals?\nP01: Cheers man\nP01: Those who create visuals for the workshop should be available to discuss their visuals.. The data will be available with instructions from tomorrow for anyone to connect to.\nP08: Alright, thanks\nP09: I make no promises, but we'll see about this",
+  "dialogueID": "s0011",
+  "startedAt": "2019-12-02 21:52:00",
+  "endedAt": "2019-12-02 22:21:00",
+  "numberOfUtterances": 18,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U21"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U06"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U05"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U12"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U23"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U17"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U15"
+    },
+    {
+      "participantID": "P09",
+      "globalID": "U03"
+    }
+  ],
+  "speakerLabel": true
+}

@@ -37,8 +37,11 @@ data/sns_sample.json 에서 아래 항목만 번역해 언어별 파일로 낸�
 사용 예:
     pip install torch transformers tqdm
 
-    python src/gpu_translator.py                           # 5개 언어 전부
+    python src/gpu_translator.py                           # 한국어 -> 나머지 5개 언어
     python src/gpu_translator.py --language en             # 한 언어만
+
+    # 영어 원문(WhatsApp)을 한국어 포함 5개 언어로
+    python src/gpu_translator.py --data data/WhatsappChat.json --source-lang en
     python src/gpu_translator.py --batch-size 16           # OOM 이 나면 낮춘다
     python src/gpu_translator.py --num-beams 1             # 품질 조금 낮추고 3배 빠르게
     python src/gpu_translator.py --limit 200               # 200조각만 번역해 확인
@@ -61,6 +64,7 @@ from pathlib import Path
 
 # 출력 파일 접미사 -> (표시 이름, NLLB(FLORES-200) 언어 코드)
 LANGUAGES: dict[str, tuple[str, str]] = {
+    "ko": ("한국어", "kor_Hang"),
     "en": ("영어", "eng_Latn"),
     "vi": ("베트남어", "vie_Latn"),
     "fil": ("필리핀어", "tgl_Latn"),
@@ -68,7 +72,10 @@ LANGUAGES: dict[str, tuple[str, str]] = {
     "zh": ("중국어", "zho_Hans"),
 }
 
-SOURCE_LANG = "kor_Hang"
+# 원문 언어. --source-lang 으로 바꾼다.
+#   한국어 SNS 데이터  : ko  (기본)
+#   영어 WhatsApp 데이터: en
+DEFAULT_SOURCE = "ko"
 
 DEFAULT_MODEL = "facebook/nllb-200-1.3B"
 
@@ -319,6 +326,12 @@ def load_model(model_name: str, device: str, dtype_name: str):
             "    pip install 'transformers<5'"
         )
 
+    # 배치마다 이 경고가 찍혀 진행바를 덮는다:
+    #   Both `max_new_tokens` (=46) and `max_length`(=200) seem to have been set.
+    # NLLB 설정의 max_length=200 과 우리가 넘기는 max_new_tokens 가 겹쳐서 나는 것이고,
+    # 이기는 쪽은 의도대로 max_new_tokens 다. 번역에는 영향이 없으므로 끈다.
+    transformers.logging.set_verbosity_error()
+
     model.to(device)
     model.eval()
     return model
@@ -334,7 +347,7 @@ def translate_segments(segments: list[str], tokenizer, model, device: str,
     bos = tokenizer.convert_tokens_to_ids(tgt_code)
     if bos is None or bos == tokenizer.unk_token_id:
         sys.exit(f"토크나이저가 모르는 언어 코드입니다: {tgt_code}")
-    tokenizer.src_lang = SOURCE_LANG
+    tokenizer.src_lang = args.source_code
 
     # 길이가 비슷한 것끼리 묶어야 패딩 낭비가 줄어든다.
     # 발화문은 대부분 10자 안팎이라 이 정렬 효과가 특히 크다.
@@ -369,7 +382,7 @@ def translate_segments(segments: list[str], tokenizer, model, device: str,
 # --------------------------------------------------------------------------
 
 def build_output_path(src: Path, out_dir: Path, code: str) -> Path:
-    """data/sns_sample.json -> {out_dir}/sns_sample_en.json"""
+    """data/sns_5k.json -> {out_dir}/sns_sample_en.json"""
     return out_dir / f"{src.stem}_{code}{src.suffix}"
 
 
@@ -507,11 +520,16 @@ def main() -> None:
         help="결과를 저장할 폴더 (기본: --data 와 같은 위치)",
     )
     parser.add_argument(
-        "--language", "--languages", nargs="+", default=list(LANGUAGES),
+        "--source-lang", default=DEFAULT_SOURCE, metavar="언어",
+        help=f"원문 언어 (기본: {DEFAULT_SOURCE})\n"
+             "LANGUAGES 의 접미사(ko, en ...) 또는 NLLB 코드(kor_Hang)를 준다",
+    )
+    parser.add_argument(
+        "--language", "--languages", nargs="+", default=None,
         choices=list(LANGUAGES), metavar="언어",
         help="번역할 언어. 선택: "
              + ", ".join(f"{c}({n})" for c, (n, _) in LANGUAGES.items())
-             + "\n(기본: 전체)",
+             + "\n(기본: 원문 언어를 뺀 전체)",
     )
     parser.add_argument(
         "--model", default=DEFAULT_MODEL,
@@ -580,6 +598,20 @@ def main() -> None:
     out_dir: Path = (args.out or src.parent).resolve()
     args.cache_dir = args.cache_dir.resolve()
 
+    # 원문 언어는 접미사(en)로도 NLLB 코드(eng_Latn)로도 줄 수 있다.
+    source_key = args.source_lang if args.source_lang in LANGUAGES else None
+    args.source_code = LANGUAGES[source_key][1] if source_key else args.source_lang
+    source_label = LANGUAGES[source_key][0] if source_key else args.source_code
+
+    # 기본은 원문 언어를 뺀 나머지 전부. 자기 자신으로 번역할 이유가 없다.
+    if args.language is None:
+        args.language = [c for c in LANGUAGES if c != source_key]
+    elif source_key in args.language:
+        print(f"  (원문과 같은 {source_key} 는 건너뜁니다)")
+        args.language = [c for c in args.language if c != source_key]
+    if not args.language:
+        sys.exit("번역할 언어가 없습니다.")
+
     print("원본 읽는 중...")
     with src.open(encoding="utf-8") as fp:
         data = json.load(fp)
@@ -600,6 +632,7 @@ def main() -> None:
     print(f"원본  : {src}")
     print(f"출력  : {out_dir}")
     print(f"캐시  : {args.cache_dir}{'' if args.cache_dir.is_dir() else '  (없음)'}")
+    print(f"원문  : {source_label} ({args.source_code})")
     print(f"언어  : {', '.join(args.language)}")
     print(f"항목  : {', '.join(sorted(TRANSLATE_KEYS))}")
     print(f"모델  : {args.model}")
@@ -635,7 +668,7 @@ def main() -> None:
 
     print("\n모델 로드 중... (최초 실행 시 다운로드에 시간이 걸립니다)")
     from transformers import AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.model, src_lang=SOURCE_LANG)
+    tokenizer = AutoTokenizer.from_pretrained(args.model, src_lang=args.source_code)
     model = load_model(args.model, device, dtype_name)
 
     total_started = time.time()

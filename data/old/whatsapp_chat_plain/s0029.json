@@ -1,0 +1,22 @@
+{
+  "text": "Good morning folks.... Compliment of the season to you all. I'd like to ask if anyone here can help review my CV as an analyst\nThere is this website I used to restructure my CV and it makes lotta senses. Once my PC is back online, I will share the link with you.\nOkay. Much thanks\nI would like to have it as well. Good morning",
+  "dialogueID": "s0029",
+  "startedAt": "2019-12-27 09:27:00",
+  "endedAt": "2019-12-27 10:05:00",
+  "numberOfUtterances": 4,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U24"
+    }
+  ],
+  "speakerLabel": false
+}

@@ -1,0 +1,54 @@
+{
+  "text": "P01: so all columns are compiled?\nP02: Has anyone created the data model or connected to the data?\nP03: I'm on it. Just a problem with the sub-MDAs\nP02: Can you check the column distribution for the MDA column?. Because many column headers were included in the combine operation, you have to remove them\nP02: No.. First delete the Changed Type transformation.. Check the list of items under Code or MDA Code column.\nP02: #@전번# can you help with this?\nP03: Yes he is 💯💯. We are talking on it\nP03: Let me do this now\nP02: I haven't actually tried Excel. I'll check when I'm by a PC and get back to you\nP03: Alright💯. Thank you\nP02: I know what's wrong now.. There's no need for the other columns on personnel, total allocation, overheads etc.. Just select the Code, MDA Code and MDA and remove other columns.. The figures are already captured in Expenditure Items table\nP04: Please can I get the video or blog post\nP03: I think i'm good now\nP02: Okay good. You can always add an index when needed\nP03: I had to uncheck the enable load for summary by sub-MDAs, and rename the 'errors in summary by sub-MDA' to \"summary by sub-MDA\" since it contained added index and I check 'enable load'. Closed and applied, and it worked fine\nP03: Yes. Thank you very much\nP02: Your Summary by sub-MDAs should also connect directly to the Expenditure Items. A many-to-many relationship, I think\nP03: Yes. Many to many. The blog post is really helpful too. I was following it one by one to make sure it's all the same. Welldone💯\nP03: And thank you very much\nP04: Please can I get the link to the blog post\nP03: Update\nP03: You can Check the group description too\nP03: #@전번#  came through💯🙌🙌\nP02: Quick question, has anyone else asides from #@계정# connected to the data?\nP05: Connecting 👨🏿‍💻\nP02: Alright\nP05: Collected 😁\nP06: I have connected one of the four data, will work on the rest tomorrow.\nP02: Good to hear\nP05: #@전번# I'm done with the Expenditure Items, currently working on the capital projects....\nP05: Quick one Bro, should we filter out all the capital projects with status = null\nP02: No null is still valid.\nP05: Okay Bro...But it's safe to filter out code = 0\nP07: Just joined.\nP05: *MDA Code\nP02: Glad to have you join us\nP05: 👨🏿‍💻 Okay Bro, I was trying to do it off hand... I will retrace my step\nP05: Sheyb capital projects will have Code, MDA Code, Project Code, Project Name, Status & Expense Amount?\nP02: Yeah exactly\nP05: Thanks...Unto the next one 👨🏿‍💻\nP08: Hello everyone, good evening. I just joined the group\nP02: Welcome to the tribe 😁. I hope you've caught up on our progress\nP08: Thank you very much. I am still trying to catch up. I would be glad if you can point me in the right direction\nP02: Okay that's great. The first part involving the extraction and data engineering are done. You will find relevant links to those tutorials in the group description. You can also use it to learn some automation in Power BI.. For data modelling, visualisation and story telling, the last article in the description will get you going.\nP09: House of Rep has just increased the budget from 10.33 tn to 10.66 tn.\nP02: Thanks for this. They may pass the budget tomorrow.. #@URL#\nP10: done with importing all the files and transformation into powerbi\nP10: ready to visualize\nP02: My G!\nP10: Oya, #@전번# and #@전번# what visuals are we using\nP10: we need ur guidance. U are the custodian of this project\nP10: Na u be boss naw!! U know say i dey learn under u... Twale!!!!!\nP02: Firstly, what do you want to talk about?. There's a wealth of data.. John has done something on the Ministry of Education. I'm flipping through Ministry of Foreign Affairs at the moment. Still undecided although I've done some analysis on newspaper costs and energy costs\nP05: You need choice of visualisation tutorial🤣\nP02: We tried getting a host for this workshop but the organiser flipped on us last minute.\nP02: We're hoping people will be inspired by the ones that will be showcased on Friday.. So if you can have some interesting visuals ready for Friday, we'd be happy to showcase your work and have you tell the audience your story.\nP05: awwwn......... that's not cool....Meanwhile I'm interest in anything security (Police Affair, Defence etc)\nP05: Ehen ehen.... but people like me won't be on ground oooo.... hope e no matter.\nP02: 😥 Would have loved to have you talk about your short journey\nP02: You can still send us visuals anyway. You're already a contributor\nP05: With Tableau story module, I think the data can speak for herself 😁\nP05: Okay Boss ... Thanks\nP02: For real?\nP02: Any accountant or finance professional in the house? Anyone familiar with Benford's law?. Please I'd like to get to know you\nP01: Na Engineer, Technician and Traders dey here...☹\nP03: Plus Economists 🙂\nP01: 🤣😂\nP02: 😂 I be engineer o\nP02: Haha yeah, I hurriedly created a measure when producing the tutorial\nP05: hmmmmmmmmmmmm, nicely done👨🏿‍💻\nP05: Why do we always remove \"Changed Type\"?\nP02: It automatically formats all columns. Most times, you may need to apply transformations to the columns before changing the type\nP05: O o o .... Lemme add that to the list of magic have learnt from you\nP02: Nice nice. I'm liking this\nP02: Why does this look like a crying sperm? Or is it just me? 😅\nP11: Ah. 😂😂😂😂😂😂😂😂😂😂\nP11: It is you o\nP11: 😂\nP02: Ah Fuad o\nP11: I dont know what youre talking about\nP02: I hope someone else notices and saves me from the misery\nP11: Its your mind o 😂😂😂😂😂. 🏃🏾‍♂🏃🏾‍♂🏃🏾‍♂🏃🏾‍♂\nP05: legit\nP01: A tired Loli-Pop\nP01: You are correct jorh, Sperm drenched in its own tears\nP02: Haha see! Man said \"drenched\"",
+  "dialogueID": "s0013",
+  "startedAt": "2019-12-04 11:20:00",
+  "endedAt": "2019-12-04 22:38:00",
+  "numberOfUtterances": 86,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U04"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U05"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U09"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U12"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U31"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U24"
+    },
+    {
+      "participantID": "P09",
+      "globalID": "U11"
+    },
+    {
+      "participantID": "P10",
+      "globalID": "U10"
+    },
+    {
+      "participantID": "P11",
+      "globalID": "U13"
+    }
+  ],
+  "speakerLabel": true
+}

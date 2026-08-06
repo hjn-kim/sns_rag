@@ -1,0 +1,26 @@
+{
+  "text": "P01: Hi house,. #@URL#\nP01: We will keep this open for anyone that still wants to contribute. I'll be making a post tomorrow, so if you can send in your visuals and takeaways before the end of today, I'll include it. Thank you.\nP01: Azeez where you at??\nP02: Nicely compiled.. Many thanks to you too.\nP02: This is very important 😁. My people, we've got this. Billions of insights yet to be unveiled and it won't take us 2hrs to come up with something. Just choose an MDA, start playing with their breakdown and before you know it, inspiration will drop. I believe we can do it, oya let get our hands dirty 😁\nP03: I'm here😭🙌. I'll try to send mine tonight🙌💪\nP04: Am guilty of this too\nP04: Will do same...kai\nP01: Thanks brother\nP01: Can't wait bro 😁💪🏽",
+  "dialogueID": "s0031",
+  "startedAt": "2019-12-30 15:11:00",
+  "endedAt": "2019-12-30 18:49:00",
+  "numberOfUtterances": 10,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U05"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U18"
+    }
+  ],
+  "speakerLabel": true
+}

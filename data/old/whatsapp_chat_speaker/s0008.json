@@ -1,0 +1,30 @@
+{
+  "text": "P01: Oya naw, extract the data\nP02: Saturday is preferable\nP03: Next week Saturday right?\nP03: Sounds sweet though😃\nP04: Weekends are always better because most of us are employees\nP05: Saturday should be okay",
+  "dialogueID": "s0008",
+  "startedAt": "2019-11-27 06:50:00",
+  "endedAt": "2019-11-27 13:02:00",
+  "numberOfUtterances": 6,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U10"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U09"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U26"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U25"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U18"
+    }
+  ],
+  "speakerLabel": true
+}

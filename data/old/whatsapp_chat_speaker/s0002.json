@@ -1,0 +1,50 @@
+{
+  "text": "P01: Good morning great folks.. In case you have one out of the rest you are handling, and still 'in progress' and you want to let go, kindly let me know.. I had it in mind to pick on another this morning, only to find out all have been taken.. Just in case.\nP02: Please let me know the available ones so that I can pick the one to work on.\nP03: Alright\nP04: Good morning\nP04: Did anyone find the tutorial useful? Especially tutorial 3?. Has anyone who went through the tutorials online been able to generate the three files?. 1. Summary page. 2. Expenditure items and. 3. Capital projects breakdown\nP05: Hey guys, please #@계정#  the collaboration sheets says you've completed 12 MDA's, I'm yet to receive any of the final excel files from you\nP05: Please kindly send the excel files of the transformed MDA'S to #@계정#\nP06: okay... I'll do that. thanks\nP05: Please, as soon as possible\nP06: it may take a while please, cos they are still in pdf\nP05: Have you applied the transformations with power query??\nP06: not yet\nP05: The idea is to create a function from one MDA that transforms both the expenditure and capital project items into clean data, then execute these functions on all other MDA's\nP05: Please refer to this tutorial to understand how to go about creating the functions\nP05: If you have correctly extracted the MDA's you want to work on, please chant the status on the collaboration spreadsheet to \"In-progress\". You can only change to complete once you have sent the transformed files in excel format\nP05: Change*\nP06: oh that... now i get it\nP07: #@계정# I have sent the excel files\nP07: Any open MDAs to work on\nP07: Since this week is our target\nP08: 😢😭I am still trying to get a hold of the technique very well , will start when I am able to get a good grip\nP07: Tru and follow the tutorials\nP07: If you have any difficulty you can always ask\nP05: ✨✨✨\nP05: can #@계정#  kindly set some of the MDAs as open please\nP06: okay, that will be fine\nP05: Ok thanks\nP05: Kayode you can take note of this\nP06: done\nP05: Niceee\nP05: Guy who still want to work on some MDAs should take note.. some are open now\nP05: Our deadly is Thursday please\nP09: I want to work on the extracted file as a data analyst as I was not in the previous class .\nP05: No problem, it's fine\nP05: once we're done, you can start doing analysis\nP09: Okay, thanks John.\nP07: Okay\nP02: I want to but I don’t no the available ones.\nP05: you can see this on the collaboration sheet\nP10: Done\nP10: Hope so, but will start it soon. Have sent my extracted files.. #@전번# please is there any deadline on the transformations using powerBI?\nP04: Okay great. Niice 💪🏽. Thursday please.\nP10: This Thursday??\nP04: The data engineering aspect is almost completed. The remaining MDAs will not require as much time to split the documents. So let's try to get that aspect out of the way latest this Thursday.. Of course anyone can still continue practicing with the data, however, submissions for the remaining MDAs should come in by Thursday latest.\nP10: Am trying to get you clearly, I have sent my extracted excel files. The after doing the data cleaning on powerBI, what next?\nP04: Then we will combine everything together, and share a link for anyone to connect to. A schema will be generated, which will enable us create a better data model.. Data analysts and visual gurus would then be able to play around with the data effectively\nP07: That's good\nP10: Good\nP02: Thanks.",
+  "dialogueID": "s0002",
+  "startedAt": "2019-11-19 07:08:00",
+  "endedAt": "2019-11-19 21:28:00",
+  "numberOfUtterances": 49,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U14"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U25"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U28"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U18"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U09"
+    },
+    {
+      "participantID": "P09",
+      "globalID": "U12"
+    },
+    {
+      "participantID": "P10",
+      "globalID": "U15"
+    }
+  ],
+  "speakerLabel": true
+}

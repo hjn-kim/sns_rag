@@ -1,0 +1,26 @@
+{
+  "text": "P01: #@전번# pls add this number to the group #@전번#\nP02: Done\nP01: Alright..  Thanks\nP03: Thanks for the add!. Looking forward to learn new things and improve on existing knowledge\nP04: Glad to have you join us 😁",
+  "dialogueID": "s0010",
+  "startedAt": "2019-12-01 19:42:00",
+  "endedAt": "2019-12-01 23:04:00",
+  "numberOfUtterances": 5,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U10"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U32"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U01"
+    }
+  ],
+  "speakerLabel": true
+}

@@ -1,0 +1,30 @@
+{
+  "text": "P01: Still waiting on this.. Again, all the visuals will be on one report abi? (One will just have different pages). Yeah?\nP02: One sec, been really busy\nP02: Very straightforward actually.. We need about 10 stellar visuals with powerful insights to go along.. To allow more contributors, we'll be limiting this to *1 visual per report author.*. So guys, let's extract some useful insights from this budget that will be showcased to the world. And trust me, people are watching!!! 😁. I would ask that when you have your visuals ready, you forward the PBIX file directly to me - #@계정# We can discuss your visual on this forum before you send it in. I'll create another sheet on the contributors worksheet now. This will serve as the collaboration sheet for the visuals.. Let me know what y'all think 🙏🏼\nP02: Oh, I want this to go out Monday or Tuesday next week.\nP03: This is great.\nP03: I think it's a great idea. Is it one visual or one report?\nP02: Okay I mentioned *1 visual per report author* earlier. I'm thinking we can have *up to 2 reports* within the same PBIX file.\nP02: So, 1 PBI file, up to 2 reports (2 pages)\nP03: Okay, great. Thank you Boss.\nP02: Cheers bro\nP04: Good one #@전번# , thanks for the update. The template is on point to the best of my knowledge and I think the timing too is cool. Atleast we have all the weekend to sit down with the data and get more revelations from it. I will try repackage my initial visual for ministry of power and also add Federal Ministry of Health to it. Thanks again and again my Oga.\nP02: Niice. Well done. Let me know when you're working on the Ministry of Health\nP05: I dont fully understand this, do you mean each person should select just one ministry and create a visual with it?\nP02: Hmm not exactly one ministry, although that would make things simpler.. For the PBI file that you will submit, it shouldn't have more than 2 pages i.e. 2 reports\nP04: I will start looking into it on Friday. I noticed that Obinna too is also interested in the Federal Ministry of Health. My plan is to ask reasonable questions about the budget and visualise it with an eye catching visuals. I hope powerbi won't gimme tough time 😃\nP02: I hope so too o. So we have more than 1 author working on the Ministry of Health hmm\nP04: I remember someone did some visualisation on how much the goverment intend to spend on newspapper and event. I don't think this have to do with any MDA na... so it won't be a bad idea to have something like this.\nP02: It's a great idea. You can mix and match!\nP02: But please, have a story to make people curious, with a clear direction\nP05: Oh okay\nP02: For the engineers in the house, don't worry, another project underway!!\nP05: Is it okay for two authors to work on the same ministry?\nP02: First instinct is no. However, if the authors have different information to portray then sure thing!\nP05: Okay\nP01: Straight forward💯💯. I already have a report for about 6 to 7 visuals. But to do this now, will I have to reconnect to the overall data again online and go back to the stages of cleaning to come about the star schema?. Or will I have to delete all I have done before and just limit to only two pages?\nP01: 💪💪\nP02: You can duplicate your PBI file.. Remove other reports that you don't want to include in your submission.. You can refresh if you want but you don't need to reconnect and redo any transformations.\nP01: I grab this now💯. Thank you\nP02: 💪🏽💪🏽",
+  "dialogueID": "s0022",
+  "startedAt": "2019-12-11 20:53:00",
+  "endedAt": "2019-12-12 00:35:00",
+  "numberOfUtterances": 29,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U05"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U16"
+    }
+  ],
+  "speakerLabel": true
+}

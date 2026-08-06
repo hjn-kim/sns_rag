@@ -1,0 +1,34 @@
+{
+  "text": "P01: You can go this way\nP02: I can still work on any two MDAs that are in progress\nP02: @all, If u have in progress in any of the mda. Pls let me know the one I can work it\nP02: #@전번# pls help check through the worksheet and speak to anyone that still have in progress. For like 2, I can still work on.... Thanks!!!\nP03: Could you also provide an update on the list of completed and submitted MDAs?\nP01: #@계정# ,i have made national assembly open. You can work on that\nP04: Thanks a bunch bro. This was very helpful.\nP02: Alright.. Thanks\nP04: I'm also open to any free MDA\nP03: Guys help a brother biko 🙌🏿 I need an MDA to work on. Hope the deadline will extend to 11\nP01: You are welcome\nP04: #@전번# Judiciary MDA has just two pages. Does this explain why the expenditure custom function is giving an error feedback.. What's the best way to approach this.\nP05: I'll have a look at this\nP05: Did you split this correctly\nP04: It has just two pages, one MDA and zero capital projects\nP05: ✨✨ refer to this if you need your extracted files in excel format\nP04: I'm thinking of doing it manually.\nP05: Ok, I'll see to this soonest\nP05: Hold on, I'll have a look at it now\nP04: Okay\nP05: Ok, so they're two pages for judiciary\nP05: You should split them into two then. Summary and Expenditure\nP05: Run the function on the expenditure and even capital.. although you won't have any data for capital projects, it's fine that way\nP05: Just make sure to send an excel file containing the summary and the expenditures\nP04: That's my complaint. The expenditure function returns error feedback.. It worked well on for my first MDA.. Kindly check the screenshots I DM'd you\nP06: Code of conduct is opened now. It was giving me reduced number of capital projects than supposed eventually I found out that the reason for it was the overflowing description of the project name. I would have tried further to find way to do it eventually, but an official assignment is on me to finish, thus I wouldn't want to delay it further. It is opened on the list\nP04: I just took it. Let me see if I can resolve the issue.\nP03: 😳  that's fast...\nP05: 😂😂\nP05: That's the spirit guys\nP04: 😁\nP04: 💪🏽\nP05: 75% completed now\nP05: Guys turn in your work before end of day please 🙏🏼\nP05: 💪🏼\nP02: #@전번# u can take this\nP03: #@계정# see fastest finger 👆🏿",
+  "dialogueID": "s0004",
+  "startedAt": "2019-11-21 08:56:00",
+  "endedAt": "2019-11-21 11:30:00",
+  "numberOfUtterances": 37,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U10"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U14"
+    }
+  ],
+  "speakerLabel": true
+}

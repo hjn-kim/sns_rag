@@ -1,0 +1,42 @@
+{
+  "text": "Good morning Fam.. I just went through the Budget project workflow on the Resagratia website, it's really awesome and inspiring.. It's great to be here.\nSounds great\nPleasure to have you join us\nThank you Boss.. I've accessed the Doc file. Hope I'm free to work on any Ministry and extract relevant data?\nGood morning data fellows, can anyone please share the framework/template you're using to input the extracted data so someone don't do something else, thanks.\nYes. Any MDA that is left *Open* can be worked on.\nDo you mean the function that is used to extract the structured data?. The tutorial for that is ongoing and should be available latest tomorrow.. The way the output should look has been covered in Tutorial 1.\nOk, great.\nOk, thanks\nThere's a collaboration spreadsheet available, you should work on only Ministries that are *open*. once you decide on a ministry to work on, change the staus field to \"In-progress\" and add your name as the collaborator\nThat's the spreadsheet ☝🏼☝🏼\nYeah Data Engineering\nThis is a good division of labor\nDone\nhello everyone good morning ..My name is #@이름# pls i would like to ask the organiser the time and venue for tomorrow's meet up\nHi #@이름#, we don't have a meetup tomorrow. We're currently working on developing structured data to enable accurate analysis of the 2020 budget.",
+  "dialogueID": "s0000",
+  "startedAt": "2019-11-15 07:06:00",
+  "endedAt": "2019-11-15 12:00:00",
+  "numberOfUtterances": 16,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U28"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U21"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U04"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U18"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U06"
+    }
+  ],
+  "speakerLabel": false
+}

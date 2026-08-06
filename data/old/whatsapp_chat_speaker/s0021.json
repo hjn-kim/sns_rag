@@ -1,0 +1,18 @@
+{
+  "text": "P01: Morning guys,. I will share a template today on how the visuals will be collated and displayed on our website, so we can officially close this project.. We'll be uploading the PBIX files online, attributed to the creators who'll be sharing a few takeaways from their visuals\nP02: Awesome 🤗\nP01: All thanks to you all o 🙇🏽‍♂",
+  "dialogueID": "s0021",
+  "startedAt": "2019-12-11 10:40:00",
+  "endedAt": "2019-12-11 12:28:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U02"
+    }
+  ],
+  "speakerLabel": true
+}

@@ -1,0 +1,30 @@
+{
+  "text": "*Akinjimi Seyi* and. *Lawrence oladeji* by 7pm today, I'll have to open up the MDA'S you guys are working on.\nKindly take note\n#@전번# This is an opportunity for u... Am sure ur automation alert is still working\nEhen Ehen 😁\nCustom\nThanks.\nFlowchart\nI got it. Thanks.\nGracias",
+  "dialogueID": "s0007",
+  "startedAt": "2019-11-26 17:13:00",
+  "endedAt": "2019-11-26 17:52:00",
+  "numberOfUtterances": 9,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U10"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U21"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U11"
+    }
+  ],
+  "speakerLabel": false
+}

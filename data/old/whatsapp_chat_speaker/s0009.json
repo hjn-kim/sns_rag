@@ -1,0 +1,22 @@
+{
+  "text": "P01: #@전번# I've just made one of the MDA'S open. Independent corrupt practices and related offences.. If you're interested, you should take it\nP02: Thanks Bro.... How soon do you want it done?\nP01: Before the end of day today, if possible\nP03: hoops i didn't know its for you\nP01: I'm seeing that someone has taken it already. #@전번# 😂\nP01: Please, let #@이름# have it\nP03: should i hands off\nP01: Ask #@이름#\nP01: #@전번#\nP02: Bro... Lemme also do something na 🌚\nP03: #@이름# should i hands off\nP03: lol sorry😊\nP02: Yes sir..\nP03: done\nP02: Thanks 🤗\nP02: #@전번# pls check your mail sir. Hope I can change the status on the sheet to completed?.\nP01: Ok, you can\nP01: I'll go through your extract shortly\nP02: Aiit Bro",
+  "dialogueID": "s0009",
+  "startedAt": "2019-11-28 12:46:00",
+  "endedAt": "2019-11-28 17:07:00",
+  "numberOfUtterances": 19,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U06"
+    }
+  ],
+  "speakerLabel": true
+}

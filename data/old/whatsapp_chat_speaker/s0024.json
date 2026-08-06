@@ -1,0 +1,38 @@
+{
+  "text": "P01: I think it's listed slightly before this visual in the article. - Code, MDA Code, MDA, etc.. I'm not on seat now.\nP02: Are the 5 columns of interest Code, MDA Code, Item Code and MDA?\nP02: No it's not stated\nP01: #@전번# can you please help?\nP03: I'm Sorry for replying just now. The columns you need are;. Code, MDA Code, Item Code, Line Item and Expense Amount\nP04: does Resagratia (the name dey hard me to call  😁) have a formal training on analytics?\nP05: KPMG product\nP05: Fear those poeple\nP05: KPMG. JP Morgan. P&G. EY\nP04: 😂\nP03: Yes we have one starting next year. We're working to make it the best around. So stay tuned\nP04: good one...👍\nP04: i'll look forward to it\nP02: Thank you John\nP02: Would definitely be there...the session your're handling Tobi are the areas I'm deeply interested in.\nP06: Who worked on the Ministry of Foreign Affairs during the data extraction process 🤦‍♂\nP07: Gengen. Na me😭\nP07: What happened to it?\nP06: Nothing do you baba, have seen where the issue is😄\nP07: Ope oo😂😂\nP01: Haha\nP01: You would mostly be listening to the thought leaders giving sharing their ideas - Seplat, Schneider, Ikeja Electric, GIZ etc\nP06: I wish the event is on Saturday/Sunday 😔\nP06: #@전번# we have 117 Nigeria Embassy in total 😒 and you want us to extract them one by one.... No be small thing oooo\nP06: *Extract the Country Name & GPS\nP01: Don't extract them o. The link has been prepared o\nP01: The extraction just showed you the process taken, so that if you want to apply the technique to your own workflows, you know what to do.\nP06: Ope oooo.... I for fear... I was following the tutorial line by line ni\nP01: I will create another tutorial subsequently on how you can automate this process with Google Maps Geocode API using Python.. But that's especially for when you have thousands of addresses or locations to lookup\nP06: I anticipate Baba...I'm in love with Python 😍\nP01: 😅 Ah please.. Maybe you can try to generate another visual from the FGN budget and apply location to show another dimension.\nP06: No wahala....lemme fast forward the tutorial, connect to power BI and replicate the visual. Once I'm done I will try get my hands dirty.\nP02: Oh okay\nP07: I worked on science and technology not foreign affairs. I must have been high on Friday's weed🙇🙇\nP03: 😂😂😂😂",
+  "dialogueID": "s0024",
+  "startedAt": "2019-12-13 13:22:00",
+  "endedAt": "2019-12-13 22:38:00",
+  "numberOfUtterances": 35,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U16"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U21"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U05"
+    }
+  ],
+  "speakerLabel": true
+}

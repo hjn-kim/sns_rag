@@ -1,0 +1,22 @@
+{
+  "text": "Ooooh!. I just dealt with a similar thing few hours ago.. Not hard.. There could be a number of ways to go about it.. One way is to split that column with the space condition (you may choose every space, if the digits are into 6 or more)  as the thing to look for. Then after splitting, merge them again with nothing as condition to join them in between. That way, the space would have gone.. However make sure that the column you select first is the one that should start your actual number, or in that sequence if the result splits are more than 2.. After merging, then change data type to whole number or decimal as you might want.. The error is occurring because of how the data was structured from when and/or where imported...which is the space in between them.\nHope it's a bit clear?!. Revert if not.. Thanks\nokay, much thanks... i'll try it\nThank you for this.. In addition, after promoting a row to become the header for the dataset, Power BI automatically adds a query which you can see as \"Changed Type\". You should delete that query from the *Applied steps* pane to prevent automatic formatting into text.. Try if that helps.\n#@계정#, this worked perfectly fine.. Much thanks. I'm very grateful for that help\nYeah, I get this too, the challenge is that, the data was formatted like that from source. It's a bank statement.. Thank you #@전번# for your assistance as well\nSplendid!\nThat automatic \"changed type\" can be annoying. If not removed, results in data loss.\n👍\nEven removing 'changed type' never did mine too, so I had to implement that. Pquery is as powerful as your imagination can carry you.\nYou are welcome #@계정#\nVery very. I was just laughing at myself after implementing the steps you gave.. I was like, Wow... so easy? And it has been there all along.",
+  "dialogueID": "s0005",
+  "startedAt": "2019-11-21 18:03:00",
+  "endedAt": "2019-11-21 21:37:00",
+  "numberOfUtterances": 12,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U14"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U01"
+    }
+  ],
+  "speakerLabel": false
+}

@@ -1,0 +1,22 @@
+{
+  "text": "P01: Good Morning Guys!\nP01: How's the holiday going?\nP01: You can now have your hands on the Approved Budget 2020.... check here 👇🏿\nP02: Interesting! Thank you brother\nP03: 👏👏👏👏\nP02: Looks like it was broken down into individual MDAs but the format is a little different now. Hmmm\nP01: Yes 😋\nP02: Haha someone's happy. I'm not\nP01: I'm understanding Bro. So sorry about that\nP02: It's all good",
+  "dialogueID": "s0028",
+  "startedAt": "2019-12-24 10:48:00",
+  "endedAt": "2019-12-24 11:00:00",
+  "numberOfUtterances": 10,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U14"
+    }
+  ],
+  "speakerLabel": true
+}

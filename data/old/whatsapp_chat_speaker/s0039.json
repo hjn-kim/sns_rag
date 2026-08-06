@@ -1,0 +1,18 @@
+{
+  "text": "P01: Thank you. Will contact you tomorrow bro\nP01: Thank you bro. Will be in touch tomorrow.\nP02: Ok",
+  "dialogueID": "s0039",
+  "startedAt": "2020-01-07 20:56:00",
+  "endedAt": "2020-01-07 21:38:00",
+  "numberOfUtterances": 3,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U22"
+    }
+  ],
+  "speakerLabel": true
+}

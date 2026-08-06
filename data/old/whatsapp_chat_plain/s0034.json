@@ -1,0 +1,18 @@
+{
+  "text": "Anyone wanna work abroad??\nWho will not want to work abroad😭",
+  "dialogueID": "s0034",
+  "startedAt": "2020-01-01 23:51:00",
+  "endedAt": "2020-01-02 00:07:00",
+  "numberOfUtterances": 2,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U04"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U05"
+    }
+  ],
+  "speakerLabel": false
+}

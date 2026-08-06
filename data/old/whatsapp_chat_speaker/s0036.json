@@ -1,0 +1,22 @@
+{
+  "text": "P01: I do too☝🏿\nP02: I want to work in abroad 🙌🏿\nP03: North Korea is also abroad o!🌚. Where in abroad biko?\nP02: Lols 🤣. You dey fear\nP03: No o!. I trust #@계정# Na sure connect.",
+  "dialogueID": "s0036",
+  "startedAt": "2020-01-02 18:05:00",
+  "endedAt": "2020-01-02 18:22:00",
+  "numberOfUtterances": 5,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U30"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U08"
+    }
+  ],
+  "speakerLabel": true
+}

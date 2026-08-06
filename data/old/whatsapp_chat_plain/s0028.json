@@ -1,0 +1,22 @@
+{
+  "text": "Good Morning Guys!\nHow's the holiday going?\nYou can now have your hands on the Approved Budget 2020.... check here 👇🏿\nInteresting! Thank you brother\n👏👏👏👏\nLooks like it was broken down into individual MDAs but the format is a little different now. Hmmm\nYes 😋\nHaha someone's happy. I'm not\nI'm understanding Bro. So sorry about that\nIt's all good",
+  "dialogueID": "s0028",
+  "startedAt": "2019-12-24 10:48:00",
+  "endedAt": "2019-12-24 11:00:00",
+  "numberOfUtterances": 10,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U14"
+    }
+  ],
+  "speakerLabel": false
+}

@@ -1,0 +1,22 @@
+{
+  "text": "Total budget allocation is not 9 trillion but about 10.59 trillion. We'll need to resolve this.. Nice visualization. Try adjusting your color combinations.\nYea, I thought as much, the background colour is dull.. I just realised that after publishing.\nThis writeup will help you.. #@URL#\nAlso you can't use donut chart for all MDAs... It's difficult to understand the point you are driving out.\nThanks for sharing #@이름#.\n#@계정# 👆🏿\nI think it works well like a pie chart also.\n👏👏👏\nYes but for best practice ehn... U use donut & pie chart for max. of 3-4 variables.\nYou are right, the next chart shows the top 10 MDAs by allocation, follow by top 10 capital project .. The idea of the design was to be strategic, and analytical just like you have pointed out .. The donut charts shows all the mdas, while the bar charts shows the top 10 mdas.",
+  "dialogueID": "s0020",
+  "startedAt": "2019-12-10 21:31:00",
+  "endedAt": "2019-12-10 21:46:00",
+  "numberOfUtterances": 10,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U12"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U02"
+    }
+  ],
+  "speakerLabel": false
+}

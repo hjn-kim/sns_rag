@@ -1,0 +1,46 @@
+{
+  "text": "P01: #@전번# Did you see my input on LinkedIn? Do you need help?\nP02: Apologies yet to check LinkedIn today. I'll reply shortly\nP01: Its regarding your consultancy at Kwara\nP02: Oh yes. What I'm working on is a proof of concept POC. Let's see how this goes.\nP02: Are you in Ilorin?\nP01: No.. But its rides away!. Why did you not tell us before leaving so that we'll see if we can work together\nP01: I'm into freelance right now\nP02: 😅😅 my bad. No worries, I'm working on getting another project for this January that we can work on together.\nP02: I'll keep you up to date\nP03: 👆🙋‍♂\nP04: Bossman 🙌. Pls remember me in your kingdom sir. 😁 I'm a workaholic 👨🏿‍💻\nP02: 🙇🏽‍♂\nP02: Standard bro 🙇🏽‍♂\nP04: 🙇🏿‍♂🙇🏿‍♂\nP05: Lol...workaholics actually don't know they are one...its when people around them are begging them to rest that's when they realize there is fire on the mountain. 😁😁😁😁. Just joking anyways....\nP02: Haha all those ones just love working. #@이름# must be a conc workaholic then 😁\nP04: Hmmmm 🤔. The koko is to make money biko, small work big money (SWBM). 😁\nP04: Haha 😂. E jo o\nP05: Exactly...for him to see himself as one. He must 've the ability to even work in his dreams😁😁😁😁\nP05: No be me write am oooo🙌🙌🙌\nP04: 🌚 see sarcasm\nP05: 👆🏿#@전번# boss...🙌🏼🙌🏼🙌🏼 see my hand for up ooo....\nP04: Lols ... Nothing do you Bro.\nP06: Hello all,. Please how do you go about the issue of wide data gap in visualization?. For instance, I want to show number of suicides per country, while majority of the values for most countries are in hundreds, countries like China, India are having data in thousands, and tens of thousands.. How do you go about scaling this on your axis?\nP04: What type of visualisation are you using!\nP01: Which visual are u using?\nP04: I will advise you use a Scatter plot and make the x-axis logarithmic scale.\nP06: A line chart, cos it's over a period\nP04: You will also need the country's population for the size of the bubble.\nP03: Line chart wouldn't be the best as far power BI is concerned, Tableau could have done synced dual visualisation to make it look appreciable but not Power BI in that regard. Better to use scatter plot like #@전번# rightly said.\nP01: He may need country population\nP04: Yeah.... Tableau will handle it seemlessly. You can handle add a year filter and play the visualisation to see the trend per year. I dunno if PowerBI latest update was enhanced to handle this type of visualisation (bubble size increase per country's population).\nP03: Yeah, most likely. Or it depends. It depends on what he wants to bring out.. Data in the hands of an analyst is up to him what he wants to paint.. I don't know the source of his data, but I have got a data like this time past to do stuffs with, I abandoned it later, I think based on many missing data or something.. But like I said, where I got mine could be different from his.\nP06: Yeah, population as well... it tells the story more\nP06: This was from gapminder.com. It was surprising there was no missing data\nP06: Much noted...Thanks\nP03: Ohh! That's good.. Missing data comes with its own horror, especially where you can't suggest it by some reasonable statistical methods\nP03: You are welcome\nP02: I would advise a log scale too. Scatter plot or line chart, it's up to you and the dimensions of data you have.\nP06: Thanks boss\nP02: Good evening house,. Any Chartered accountant in the house? Must have missed the person that mentioned it earlier 😥\nP02: I\nP07: Some line of python can fetch him for you😉\nP02: Haha I used the text search here but I didn't find the person. Maybe I was just imagining it.\nP08: Yes ooo\nP08: I am a chartered accountant\nP09: I am",
+  "dialogueID": "s0038",
+  "startedAt": "2020-01-06 12:02:00",
+  "endedAt": "2020-01-07 09:19:00",
+  "numberOfUtterances": 47,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U04"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U14"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U23"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U06"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U22"
+    },
+    {
+      "participantID": "P09",
+      "globalID": "U19"
+    }
+  ],
+  "speakerLabel": true
+}

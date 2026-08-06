@@ -1,0 +1,22 @@
+{
+  "text": "P01: Lemaooo. Drenched you say?😂\nP01: Well. I dont know what you people are talking about 🚶🏾‍♂🚶🏾‍♂🚶🏾‍♂🚶🏾‍♂\nP02: Thank you very much\nP02: Studying it already\nP03: 👍",
+  "dialogueID": "s0014",
+  "startedAt": "2019-12-05 05:49:00",
+  "endedAt": "2019-12-05 06:34:00",
+  "numberOfUtterances": 5,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U13"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U24"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U19"
+    }
+  ],
+  "speakerLabel": true
+}

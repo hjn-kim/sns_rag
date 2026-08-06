@@ -1,0 +1,50 @@
+{
+  "text": "P01: Good morning tribe,. The third tutorial is finally available and those that are itching to try their hands on generating *expenditure and capital projects functions* should take a look at this\nP01: If you're going through the tutorials, don't forget to reach out to any of the contributors if you encounter errors in your functions.. Please if you're currently working on any extractions, let's quickly identify ourselves by a show of hands 🙋🏽‍♂🙋🏽\nP02: 🙋🏾‍♂ Federal Ministry of Police Affairs.. Almost complete\nP01: Nice. Well done!😁\nP03: 🙋🏾‍♂ Trade and investment\nP03: Almost done extracted the pdf and splitted currently on the last step\nP01: Great stuff! Tutorial 3 next 💪🏽\nP04: 🙋🏾‍♂ Department of Petroleum Resources\nP05: 😱😱Guy na this MDA I don dey work on oo\nP04: ☝🏾☝🏾☝🏾\nP04: If you have started earlier before this time I will gladly swerve for you\nP01: Kindly confirm available MDAs on the progress worksheet\nP01: Okay that's fine. Acknowledged.\nP06: So guys, I did a quick rough analysis of the project\nP06: The capital project function has been explained, you can use this link to follow through #@URL#\nP07: I have been quite busy.. Is there deadline #@전번# ?. The least I want to do is 2\nP06: We hope to have finished all the transformations by this week\nP06: So you can pick 2 MDA's you want to work on and set them to \"In-progress\" in the collaboration sheet. Provided you think you can finish before the week runs out\nP07: Okay\nP07: Thanks\nP04: Thanks Tobi.. We have discussed about it and it has been resolved.. Will start working on. Nigeria atomic energy commission and it's center and code of conduct burea\nP08: When are we starting the analysis please?\nP01: Awesome stuff.\nP01: We'll begin as soon as all extractions are done. We need to define an overall schema for the data model as we begin analysis\nP06: Here's the link again\nP09: Finally here.. Thanks #@계정# for sharing the group link with me.\nP01: Glad to have you here\nP10: You are welcome\nP09: Thanks Boss 🙌🏿\nP09: 🤗",
+  "dialogueID": "s0001",
+  "startedAt": "2019-11-18 09:14:00",
+  "endedAt": "2019-11-18 21:54:00",
+  "numberOfUtterances": 30,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U06"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U27"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U15"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U14"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U28"
+    },
+    {
+      "participantID": "P09",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P10",
+      "globalID": "U18"
+    }
+  ],
+  "speakerLabel": true
+}

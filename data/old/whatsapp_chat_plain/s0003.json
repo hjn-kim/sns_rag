@@ -1,0 +1,38 @@
+{
+  "text": "#@전번# ,hope you got the files I sent this morning\nYes, I received them\nI'm going through them now\nokay\n👍\nPls how does one circumvent the PowerBi sign up procedure?. It's requesting for a work or student email\nIs it BI desktop you downloaded?\nYou don't need to sign up. Just click to sign in, then close the sign in dialog box that appears.\nYes\nOk, thank you Boss\nYelp..... It's been answered already\nHi #@전번#  the videos aren't very clear, couldn't see clearly the things you clicked on.  Can you share a better one? Was forcing my eyes to see the points you clicked at\nIn the first video, why was the 3rd file selected?. Are we to repeat the process for all the sub-MDAs?\nHi, can I know which aspects you couldn't see clearly? I may be able to work you through it remotely.. If you're on mobile, it might be more difficult to follow through. Try fullscreen, landscape and pause at any point, if that helps.\nam using my phone, because i cant connect my phone to the laptop as i have small MB to use on laptop and my office internet doesnt accept youtube videos\nIn the first video in Part 3 of the series?. That video went through how to create steps 1 to 3\nAh I see. The video quality reaches 720p which is HD, so I'm guessing you've been viewing a lower quality version. The video is actually large and you would require some data either way. Can your office internet download video from another site so you can watch for later?. If yes, I suggest you use #@URL#\nLooks like I'm missing something.. I didn't actually extract the Ministry of Power file. I just followed the steps in extracting the MDA's that I'm working on.. Will I have to extract the specific files that were used in the tutorial then apply the functions to my extracted MDAs?\nThe video is actually very very fantastic 👌. My opinion though.\nYes. The tutorials will allow you create two functions to extract expenditure items and capital projects breakdown using the data from the Ministry of Power.. When these functions have been created, you can then extract an MDA you're working on and invoke the functions on them to automatically extract their data.. The tutorials on the Ministry of Power will allow you create a template that can be used for others.\nThanks a lot for the feedback. I'm glad you found it useful\nOk, great. Thank you for the insight.. Let me get to work.\n👍🏽",
+  "dialogueID": "s0003",
+  "startedAt": "2019-11-20 11:04:00",
+  "endedAt": "2019-11-20 14:17:00",
+  "numberOfUtterances": 23,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U07"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U17"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U15"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U14"
+    }
+  ],
+  "speakerLabel": false
+}

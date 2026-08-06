@@ -1,0 +1,14 @@
+{
+  "text": "I do bros",
+  "dialogueID": "s0035",
+  "startedAt": "2020-01-02 06:40:00",
+  "endedAt": "2020-01-02 06:40:00",
+  "numberOfUtterances": 1,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U13"
+    }
+  ],
+  "speakerLabel": false
+}

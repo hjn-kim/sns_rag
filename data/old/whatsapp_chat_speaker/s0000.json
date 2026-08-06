@@ -1,0 +1,42 @@
+{
+  "text": "P01: Good morning Fam.. I just went through the Budget project workflow on the Resagratia website, it's really awesome and inspiring.. It's great to be here.\nP02: Sounds great\nP03: Pleasure to have you join us\nP01: Thank you Boss.. I've accessed the Doc file. Hope I'm free to work on any Ministry and extract relevant data?\nP04: Good morning data fellows, can anyone please share the framework/template you're using to input the extracted data so someone don't do something else, thanks.\nP03: Yes. Any MDA that is left *Open* can be worked on.\nP03: Do you mean the function that is used to extract the structured data?. The tutorial for that is ongoing and should be available latest tomorrow.. The way the output should look has been covered in Tutorial 1.\nP01: Ok, great.\nP04: Ok, thanks\nP05: There's a collaboration spreadsheet available, you should work on only Ministries that are *open*. once you decide on a ministry to work on, change the staus field to \"In-progress\" and add your name as the collaborator\nP05: That's the spreadsheet ☝🏼☝🏼\nP06: Yeah Data Engineering\nP07: This is a good division of labor\nP01: Done\nP08: hello everyone good morning ..My name is #@이름# pls i would like to ask the organiser the time and venue for tomorrow's meet up\nP03: Hi #@이름#, we don't have a meetup tomorrow. We're currently working on developing structured data to enable accurate analysis of the 2020 budget.",
+  "dialogueID": "s0000",
+  "startedAt": "2019-11-15 07:06:00",
+  "endedAt": "2019-11-15 12:00:00",
+  "numberOfUtterances": 16,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U28"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U01"
+    },
+    {
+      "participantID": "P04",
+      "globalID": "U21"
+    },
+    {
+      "participantID": "P05",
+      "globalID": "U03"
+    },
+    {
+      "participantID": "P06",
+      "globalID": "U04"
+    },
+    {
+      "participantID": "P07",
+      "globalID": "U18"
+    },
+    {
+      "participantID": "P08",
+      "globalID": "U06"
+    }
+  ],
+  "speakerLabel": true
+}

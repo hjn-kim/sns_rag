@@ -1,0 +1,22 @@
+{
+  "text": "P01: Good morning Fam.. I want to specially thank #@전번# and #@전번# and everyone who made yesterday's event possible. It was awesome, enlightening and very insightful.. As Boss #@이름# stressed, we need to do more of collaborations and less of competition. It's amazing being in this community and I believe with the Open Analytics project and active collaboration from everyone, we'll be able to impact our society, Nigeria, Africa and the world at large.\nP02: 👍🏿\nP02: Yes pls...\nP01: Okay, thank you Boss.\nP03: Thank you Obinna. We definitely need more collaborations",
+  "dialogueID": "s0016",
+  "startedAt": "2019-12-07 05:56:00",
+  "endedAt": "2019-12-07 08:57:00",
+  "numberOfUtterances": 5,
+  "participants": [
+    {
+      "participantID": "P01",
+      "globalID": "U08"
+    },
+    {
+      "participantID": "P02",
+      "globalID": "U02"
+    },
+    {
+      "participantID": "P03",
+      "globalID": "U01"
+    }
+  ],
+  "speakerLabel": true
+}
