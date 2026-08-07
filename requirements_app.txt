@@ -1,4 +1,4 @@
-# python -m pip install --ignore-installed -r requirements_app.txt
+# # python -m pip install --ignore-installed blinker -r requirements_app.txt
 
 # --- 화면 (app.py) ---------------------------------------------------------
 streamlit>=1.40
