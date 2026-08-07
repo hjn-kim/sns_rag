@@ -1,7 +1,18 @@
-# 메신저 RAG - 번역기 의존성
+# 메신저 RAG - RunPod 등 GPU 팟
 #
-#   src/cpu_translator.py   Google 무료 API (deep-translator). GPU 불필요
-#   src/gpu_translator.py   NLLB-200 로컬 추론 (torch/transformers)
+# 데모 앱(app.py)과 데이터 준비 스크립트(data/data_src/) 를 둘 다 커버한다.
+#
+#     data/data_src/whatsapp_to_json.py   채팅 로그 -> 대화 단위 JSON
+#     data/data_src/gpu_translator.py     NLLB-200 로 6개 언어 번역
+#     data/data_src/embedding.py          청킹 + Harrier 임베딩 -> data/emb/*.npz
+#
+# ── 설치 ─────────────────────────────────────────────────────────────────
+#
+#     pip install -r requirements_runpod.txt
+#
+# ★ 로컬용 CPU 휠 명령(requirements_local.txt 상단)을 여기서 실행하지 말 것.
+#   팟에 딸려 있는 CUDA torch 가 CPU 빌드로 덮여서 GPU 를 못 쓰게 된다.
+#   팟에는 torch 가 이미 있으므로 pip 가 알아서 건너뛴다.
 #
 # ==========================================================================
 # torch 는 일부러 넣지 않았다. pip 에게 맡기면 GPU 환경이 깨진다
@@ -13,60 +24,76 @@
 #     장치  : cpu / float32
 #   (12080 = 드라이버가 지원하는 CUDA 12.8. 그보다 새 빌드는 못 돌린다)
 #
-#   그래서 torch 는 드라이버에 맞춰 직접 깐다. 드라이버 확인:
+#   팟에 딸린 torch 를 바꿔야만 하는 상황이라면 드라이버에 맞춰 직접 깐다:
 #     nvidia-smi | head -3          # CUDA Version 을 본다
-#   그 버전에 맞는 인덱스에서 설치 (12.8 이면 cu128, 12.4 면 cu124 ...):
 #     pip install torch --index-url https://download.pytorch.org/whl/cu128
 #   확인 - 세 번째 값이 True 여야 한다:
 #     python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
 #
-#   transformers 5.x 는 torch.distributed.tensor 를 쓰므로 torch 2.5 이상이어야 한다.
-#   더 낮은 torch 를 써야 하면 DTensor ImportError 가 나므로 'transformers<5' 로 낮춘다.
+# ── 팟에서 잘 나는 오류 네 가지 ───────────────────────────────────────────
 #
-#   torch 를 바꾸면 팟에 딸려 있던 torchvision/torchaudio 는 옛 torch 로 빌드된 채
-#   남아 어긋난다. 그 상태로 모델을 올리면 이렇게 터진다:
-#     RuntimeError: operator torchvision::nms does not exist
-#     ModuleNotFoundError: Could not import module 'M2M100ForConditionalGeneration'
-#   번역에는 둘 다 안 쓰이고 transformers 는 없으면 건너뛴다. 지우는 게 제일 간단하다:
-#     pip uninstall -y torchvision torchaudio
-#   팟의 다른 작업 때문에 남겨야 하면 torch 와 같은 인덱스에서 다시 깐다:
-#     pip install --force-reinstall torchvision --index-url https://download.pytorch.org/whl/cu128
+# 1) error: uninstall-distutils-installed-package
+#    × Cannot uninstall blinker 1.4
 #
-# --------------------------------------------------------------------------
-# torch 를 확인한 뒤:  pip install -r requirements.txt
-# --------------------------------------------------------------------------
-
-# --- cpu_translator.py ---------------------------------------------------
-deep-translator>=1.9.1
-
-# --- gpu_translator.py / embedding.py ------------------------------------
-# torch 2.4 팟에서는 transformers 를 4.51.x 로 고정해야 한다. 위아래로 다 막힌다.
+#    데비안/우분투가 시스템 패키지(python3-blinker)로 깔아둔 것이라 pip 가
+#    지우지 못한다. 어떤 파일이 그 패키지 것인지 알 수 없어 반쪽짜리 삭제를
+#    피하려고 거부하는 것이다. streamlit 은 더 높은 버전을 원하므로 충돌한다.
+#    지우려 하지 말고 덮어쓰게 한다:
+#      pip install --ignore-installed blinker -r requirements_runpod.txt
 #
-#   4.51 미만  임베딩 모델(microsoft/harrier-oss-v1-0.6b)이 Qwen3 인데
-#              qwen3 지원이 4.51.0 에 처음 들어갔다. 4.50 에는 아키텍처가 없다.
-#   4.52 이상  CVE-2025-32434 때문에 torch 2.6 미만에서 .bin 체크포인트 로딩을
-#              막는다. NLLB 공식 저장소는 전부 pytorch_model.bin 뿐이라 걸린다:
-#                ValueError: ... require users to upgrade torch to at least v2.6
-#   5.x       torch.distributed.tensor 의 DTensor 를 쓰는데 그 경로는 torch 2.5
-#              부터 생겼다: ImportError: cannot import name 'DTensor'
+#    ★ --ignore-installed 는 파일을 덮어쓰는 방식이라 설치가 중간에 끊기면
+#      한 패키지 안에 두 버전이 섞일 수 있다(아래 3번). 가능하면 가상환경이 낫다:
+#        python -m venv .venv && source .venv/bin/activate
+#        pip install -r requirements_runpod.txt
 #
-# torch 를 2.6 이상으로 올리면 이 제약이 다 풀리지만, 드라이버보다 새 CUDA 빌드가
-# 들어오면 GPU 를 통째로 잃는다. torch 를 고정하고 transformers 를 맞추는 쪽이 안전하다.
-transformers>=4.51,<4.52
-tqdm>=4.66
+# 2) RuntimeError: operator torchvision::nms does not exist
+#    ModuleNotFoundError: Could not import module 'M2M100ForConditionalGeneration'
+#
+#    torch 를 바꿨을 때 팟에 딸려 있던 torchvision/torchaudio 가 옛 torch 로
+#    빌드된 채 남아 어긋난 것이다. 이 프로젝트는 둘 다 안 쓰므로 지우는 게 제일
+#    간단하다:
+#      pip uninstall -y torchvision torchaudio
+#    팟의 다른 작업 때문에 남겨야 하면 torch 와 같은 인덱스에서 다시 깐다:
+#      pip install --force-reinstall torchvision --index-url https://download.pytorch.org/whl/cu128
+#
+# 3) ImportError: cannot import name 'BytesLike' from 'websockets.typing'
+#
+#    질의 재작성·리랭킹·답변 생성이 한꺼번에 실패한다. Gemini 문제가 아니라
+#    websockets 패키지 안에 서로 다른 버전의 파일이 섞인 것이다.
+#      pip install --force-reinstall --no-deps "websockets>=13.0,<15.1"
+#    확인:  python -c "from google import genai; print('OK')"
+#
+# 4) 번역 스크립트에서 ValueError: ... require users to upgrade torch to v2.6
+#
+#    torch 2.4 팟이면 transformers 를 4.51.x 로 고정해야 한다. 위아래로 다 막힌다.
+#      4.52 이상  CVE-2025-32434 때문에 torch 2.6 미만에서 .bin 체크포인트 로딩을
+#                 막는다. NLLB 공식 저장소는 전부 pytorch_model.bin 뿐이라 걸린다.
+#      5.x        torch.distributed.tensor 의 DTensor 를 쓰는데 그 경로는 torch 2.5+
+#    그 경우 아래 transformers 줄을 'transformers>=4.51,<4.52' 로 낮춘다.
+#    (데모 앱만 돌릴 거라면 번역 스크립트를 안 쓰므로 그대로 둬도 된다)
+#
+# ── 확인 ─────────────────────────────────────────────────────────────────
+#     python -c "import torch, sentence_transformers, streamlit; \
+#                print(torch.__version__, torch.cuda.is_available())"
+#     팟에서는 True 가 나와야 한다. search.py 가 자동으로 cuda 를 잡는다.
+#
+# ── 실행 ─────────────────────────────────────────────────────────────────
+#     streamlit run app.py --server.address 0.0.0.0 --server.port 8501
+#       -> Pod 설정에서 HTTP Port 8501 을 노출하면
+#          https://{POD_ID}-8501.proxy.runpod.net 으로 붙는다
+#       -> 화면이 "Connecting..." 에서 안 넘어가면 프록시 뒤 WebSocket 문제다:
+#          --server.enableCORS false --server.enableXsrfProtection false
+#
+#     python src/main.py --lang ko "질문"                    # 파이프라인만
+#     python data/data_src/embedding.py --data <폴더>        # 재임베딩
 
-# NLLB 토크나이저(SentencePiece). 저장소에 fast 토크나이저가 없는 모델을 쓸 때 필요하다.
-sentencepiece>=0.1.99
-protobuf>=3.20
+# --- 데모 앱 공통 (streamlit / google-genai / sentence-transformers ...) ----
+-r requirements_app.txt
 
-# 5.5GB 모델을 빨리 받으려면 (선택)
-#   pip install hf_transfer && export HF_HUB_ENABLE_HF_TRANSFER=1
-# hf_transfer>=0.1.6
-
-# --- embedding.py --------------------------------------------------------
-# sentence-transformers 를 따로 설치하면 transformers 를 최신으로 끌어올려
-# 위의 4.51 고정이 풀린다. 반드시 이 파일로 같이 설치하거나, 개별 설치할 때
-# transformers 를 함께 명시할 것:
-#   pip install "sentence-transformers" "transformers==4.51.3"
-numpy>=1.24
-sentence-transformers>=3.0
+# --- 데이터 준비 스크립트 (data/data_src/) 전용 -----------------------------
+# 앱만 돌릴 거면 아래는 필요 없지만, 팟은 대개 재번역·재임베딩을 하는 곳이라
+# 함께 둔다.
+deep-translator>=1.9.1     # 번역 (Google 무료 API, GPU 불필요)
+sentencepiece>=0.1.99      # NLLB 토크나이저
+protobuf>=3.20             # sentencepiece 가 요구
+tqdm>=4.66                 # 진행 표시

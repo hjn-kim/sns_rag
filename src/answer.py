@@ -47,10 +47,6 @@ DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
 SYSTEM_PROMPT = """당신은 WhatsApp 그룹 채팅 로그를 근거로 질문에 답하는 도우미입니다.
 
-대화는 나이지리아 연방정부 예산 문서(PDF)에서 부처별 데이터를 추출해 Power BI 로
-시각화하는 프로젝트 참여자들의 것입니다. 튜토리얼 안내, 작업 분담, 오류 질문과
-답변, 워크숍 공지가 오갑니다.
-
 이 방에서 쓰는 용어:
 - MDA = Ministries, Departments and Agencies (나이지리아 정부 부처/기관)
 - PBI = Power BI
@@ -60,8 +56,7 @@ SYSTEM_PROMPT = """당신은 WhatsApp 그룹 채팅 로그를 근거로 질문�
 지켜야 할 것:
 
 1. **주어진 근거 안에서만 답하세요.** 근거에 없는 날짜·이름·수치를 채워 넣지
-   마세요. 답을 특정할 수 없으면 enough 를 false 로 두고, 대신 근거에서 알 수
-   있는 데까지만 적으세요. 모른다고 답하는 것이 지어내는 것보다 낫습니다.
+   마세요. 답을 특정할 수 없으면 enough 를 false 로 두고, "관련 내용의 부재로 답변할 수 없음"을 출력하세요. 절대로 지어내거나 모르는것을 답변하지 마세요.
 
 2. **근거는 기계 번역을 거쳤습니다.** 같은 대상이 청크마다 다른 이름으로
    나올 수 있습니다(예: 같은 부처가 "전력부"와 "에너지부"로). 한 청크만 믿지
@@ -227,7 +222,7 @@ def main() -> None:
     if not result.ok:
         sys.exit(f"\n[실패] {result.error}")
 
-    print(f"\n답변 ({result.elapsed:.1f}초, 근거 충분: "
+    print(f"\n답변 ({result.elapsed:.1f}초, 근거 존재: "
           f"{'예' if result.enough else '아니오'})")
     print(f"  {result.answer}")
     if result.citations:

@@ -1,0 +1,46 @@
+# 메신저 RAG - 로컬 PC (GPU 없음) 에서 데모 앱 돌리기
+#
+# ── 설치 ─────────────────────────────────────────────────────────────────
+#
+#     pip install torch --index-url https://download.pytorch.org/whl/cpu
+#     pip install -r requirements_local.txt
+#
+# torch 를 먼저, CPU 인덱스로 까는 이유:
+#   그냥 `pip install torch` 하면 CUDA 빌드가 온다. nvidia-* 의존성까지 2.5~3GB
+#   인데 GPU 가 없으면 한 줄도 안 쓰인다. CPU 휠은 200MB 로 끝난다.
+#   이미 깔려 있으면 아래 torch 줄이 그대로 만족되므로 다시 받지 않는다.
+#
+# ── 잘 나는 오류 두 가지 ──────────────────────────────────────────────────
+#
+# 1) ImportError: cannot import name 'BytesLike' from 'websockets.typing'
+#
+#    질의 재작성·리랭킹·답변 생성 세 단계가 한꺼번에 실패한다. Gemini 문제가
+#    아니라 websockets 패키지 자체가 깨진 것이다. 한 폴더 안에 서로 다른 버전의
+#    파일이 섞이면(설치가 중간에 끊기거나 --ignore-installed 로 덮어썼을 때)
+#    frames.py 가 같은 패키지의 typing.py 에서 이름을 못 찾는다.
+#    깨끗하게 다시 깔면 된다:
+#
+#      pip install --force-reinstall --no-deps "websockets>=13.0,<15.1"
+#
+#    확인:  python -c "from google import genai; print('OK')"
+#
+# 2) 첫 검색이 15초쯤 멈춰 있다
+#    오류가 아니다. 임베딩 모델(1.2GB, 2.4GB 메모리)을 그때 올린다. 두 번째
+#    검색부터는 1초 안쪽이다. 여유 메모리 4GB 는 있어야 한다.
+#
+# ── 확인 ─────────────────────────────────────────────────────────────────
+#     python -c "import torch, sentence_transformers, streamlit; \
+#                print(torch.__version__, torch.cuda.is_available())"
+#     로컬에서는 '2.10.0+cpu False' 처럼 나오는 게 정상이다.
+#
+# ── 실행 ─────────────────────────────────────────────────────────────────
+#     streamlit run app.py
+#     python src/main.py --lang ko "질문"              # 파이프라인만
+#     python src/main.py --lang ko --no-llm "질문"     # Gemini 없이 검색만
+
+-r requirements_app.txt
+
+# CPU 빌드가 이미 깔려 있으면 이 줄은 만족돼서 아무것도 안 받는다.
+# 새로 까는 경우라면 위의 CPU 인덱스 명령을 먼저 실행할 것.
+# transformers 5.x 가 torch.distributed.tensor 를 쓰므로 2.5 미만은 안 된다.
+torch>=2.5

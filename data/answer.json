@@ -1,0 +1,25 @@
+{
+  "1": ["사법부", "사법", "Judiciary"],
+  "2": ["전력부", "에너지부", "Ministry of Power"],
+  "3": ["Power BI", "파워비", "PBI"],
+
+  "4": ["Judiciary"],
+  "5": ["Ministry of Power", "Ministry of Energy"],
+  "6": ["Power BI", "PBI"],
+
+  "7": ["司法机构", "司法部", "司法"],
+  "8": ["电力部", "能源部"],
+  "9": ["Power BI", "PBI"],
+
+  "10": ["Bộ Tư pháp", "Tư pháp", "Judiciary"],
+  "11": ["Bộ Điện lực", "Điện lực", "Bộ Năng lượng"],
+  "12": ["Power BI", "PBI"],
+
+  "13": ["Hudikatura", "Judiciary", "Hustisya", "panghuhusga"],
+  "14": ["Ministry of Power", "Ministri ng Enerhiya", "Kagawaran ng Enerhiya"],
+  "15": ["Power BI", "PBI"],
+
+  "16": ["Судебная власть", "судебная система", "судебн", "Judiciary"],
+  "17": ["Министерство энергетики", "Министерство электроэнергетики", "энергетик"],
+  "18": ["Power BI", "PBI"]
+}

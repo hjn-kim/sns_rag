@@ -6,6 +6,7 @@ import streamlit as st
 
 # src/ 를 임포트 경로에 넣는다 (앱은 프로젝트 루트에서 실행한다)
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+from grade import gold_for  # noqa: E402
 from main import PipelineResult, run_pipeline  # noqa: E402
 from multi_query import RewriteResult  # noqa: E402
 from rerank import FINAL_TOP_N  # noqa: E402
@@ -204,18 +205,23 @@ def render_query_table(result, rewrite: RewriteResult) -> None:
 
 
 def render_pooled(result) -> None:
-    """3-2. 중복 제거 — 리랭킹으로 넘어갈 후보"""
+    """
+    3-2. 중복 제거 — 리랭킹으로 넘어갈 후보
+
+    한 줄에 하나씩. 20개 넘게 나오는 목록이라 훑어보기 좋아야 한다.
+    본문은 글자 수로 자르지 않고 CSS 로 넘치는 만큼 '...' 처리한다. 글자 수로
+    자르면 창 너비에 따라 두 줄이 되기도 해서 줄 높이가 들쭉날쭉해진다.
+    """
     if result.pooled:
         items = "".join(
-            f'<div class="hit">'
-            f'  <div class="hit-head">'
-            f'    <span class="hit-rank">{rank}</span>'
-            f'    <span class="hit-score">{hit.score:.3f}</span>'
-            f'    <span class="hit-src">{hit.key}</span>'
-            f'    <span>질의 {", ".join(str(q + 1) for q in hit.found_by)}번이 뽑음 '
-            f'({len(hit.found_by)}/{len(result.queries)})</span>'
-            f'  </div>'
-            f'  <div class="hit-text">{escape(hit.preview(130))}</div>'
+            f'<div class="hit-line">'
+            f'<span class="hit-rank">{rank}</span>'
+            f'<span class="hit-score">{hit.score:.3f}</span>'
+            f'<span class="hit-src">{hit.key}</span>'
+            f'<span class="hit-found" title="질의 '
+            f'{", ".join(str(q + 1) for q in hit.found_by)}번이 뽑음">'
+            f'{len(hit.found_by)}/{len(result.queries)}</span>'
+            f'<span class="hit-oneline">{escape(hit.preview(220))}</span>'
             f'</div>'
             for rank, hit in enumerate(result.pooled, 1)
         )
@@ -326,7 +332,7 @@ def render_answer(ans) -> None:
         )
         return
 
-    badge = ('<span class="tag tag-changed">근거 충분</span>' if ans.enough
+    badge = ('<span class="tag tag-changed">근거 존재</span>' if ans.enough
              else '<span class="tag">근거 부족</span>')
     cites = ("".join(f'<span class="cite">{escape(c)}</span>'
                      for c in ans.citations)
@@ -341,6 +347,48 @@ def render_answer(ans) -> None:
             <div class="answer-text">{escape(ans.answer)}</div>
             <div class="cite-row">근거 {cites}</div>
             {note}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_grade(gr) -> None:
+    """
+    7. 정답 비교
+
+    data/answer.json 에 적어 둔 실제 정답과 6단계 답변을 나란히 놓는다.
+    """
+    if gr is None:
+        return
+
+    # 맞았으면 겹친 후보만, 틀렸으면 후보 전체가 gold_display 에 담겨 온다.
+    if gr.correct:
+        style, mark = "grade-ok", "O"
+    elif gr.verdict == "오답":
+        style, mark = "grade-no", "X"
+    else:
+        style, mark = "grade-none", "?"
+
+    st.markdown(
+        f"""
+        <div class="result-card grade-card {style}">
+            <div class="card-title">7. 정답 비교
+                <span class="tag tag-verdict {style}">{mark} {gr.verdict}</span>
+                <span class="tag">문자열 포함 판정</span></div>
+            <div class="grade-row">
+                <span class="grade-label">LLM 정답</span>
+                <span class="grade-value">{escape(gr.llm_answer) or "—"}</span>
+            </div>
+            <div class="grade-row">
+                <span class="grade-label">실제 정답</span>
+                <span class="grade-value grade-gold">
+                    {escape(gr.gold_display) or "—"}</span>
+            </div>
+            <div class="grade-row">
+                <span class="grade-label">정답 여부</span>
+                <span class="grade-value">{mark} {escape(gr.verdict)}</span>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -389,6 +437,15 @@ def dev_payload(result: PipelineResult) -> dict:
                 for x in rr.ranked
             ],
             "selected": [h.key for h in rr.selected],
+        },
+        "7_grade": None if result.grade is None else {
+            "verdict": result.grade.verdict,
+            "correct": result.grade.correct,
+            "llm_answer": result.grade.llm_answer,
+            "candidates": result.grade.candidates,
+            "matched": result.grade.matched,
+            "gold_display": result.grade.gold_display,
+            "reason": result.grade.reason,
         },
         "6_answer": None if ans is None else {
             "answer": ans.answer,
@@ -604,6 +661,36 @@ st.markdown(
             line-height: 1.55;
         }
 
+        /* 3-2 후보 목록 : 한 항목이 정확히 한 줄 */
+        .hit-line {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+            border-top: 1px solid #EAECF0;
+            font-size: 0.82rem;
+        }
+        .hit-line:first-of-type { border-top: none; }
+
+        .hit-found {
+            font-size: 0.72rem;
+            color: #3B5BDB;
+            background: rgba(76, 110, 245, 0.12);
+            border-radius: 4px;
+            padding: 0.02rem 0.32rem;
+            white-space: nowrap;
+        }
+        /* 넘치는 만큼만 '...' 로 잘린다. 글자 수로 자르지 않으므로 창 너비가
+           달라져도 항상 한 줄이다. min-width:0 이 없으면 flex 항목이 안 줄어든다. */
+        .hit-oneline {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #475467;
+        }
+
         /* 4. 리랭킹 표 */
         .rr-up   { color: #2F9E44; font-weight: 700; }
         .rr-down { color: #E03131; font-weight: 700; }
@@ -641,6 +728,35 @@ st.markdown(
             margin-left: 0.3rem;
         }
         .cite-none { margin-left: 0.3rem; }
+
+        /* 7. 정답 비교 */
+        .grade-card.grade-ok   { border-color: #8CE99A; background: #F4FCF5; }
+        .grade-card.grade-no   { border-color: #FFA8A8; background: #FFF5F5; }
+        .grade-card.grade-none { border-color: #D0D5DD; }
+
+        .tag-verdict { font-weight: 700; }
+        .tag-verdict.grade-ok   { background: rgba(47,158,68,.16);  color: #2B8A3E; }
+        .tag-verdict.grade-no   { background: rgba(224,49,49,.14);  color: #C92A2A; }
+        .tag-verdict.grade-none { background: #EAECF0; color: #667085; }
+
+        .grade-row {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.4rem 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .grade-row:first-of-type { border-top: none; }
+        .grade-label {
+            flex: 0 0 5.5rem;
+            color: #667085;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding-top: 0.1rem;
+        }
+        .grade-value { flex: 1; min-width: 0; }
+        .grade-gold { font-weight: 700; }
 
         .tag {
             display: inline-block;
@@ -735,6 +851,10 @@ with st.form("rag_search_form", clear_on_submit=False):
 if search_clicked:
     lang_code = DOCUMENT_OPTIONS[selected_document]
 
+    # 7단계용 실제 정답. data/answer.json 이 QUESTION_OPTIONS 순번(1부터)을
+    # key 로 쓴다. 정답이 없는 질문이면 빈 문자열이 와서 7단계를 건너뛴다.
+    gold = gold_for(QUESTION_OPTIONS.index(selected_question) + 1)
+
     # 진행 상태를 한 줄로 보여줄 자리. 단계가 끝날 때마다 문구를 갈아 끼우고
     # 마지막에 지운다.
     progress = st.empty()
@@ -757,7 +877,7 @@ if search_clicked:
             render_expansion(payload)        # 2번
             progress.info(
                 f"질의를 임베딩해 {selected_document} 색인에서 청크를 찾고 있습니다. "
-                "(최초 1회는 모델을 올리느라 15초쯤 걸립니다)"
+                "(예상 시간: 20초)"
             )
 
         elif stage == "comparison":
@@ -775,10 +895,18 @@ if search_clicked:
             progress.info("근거를 읽고 답변을 만들고 있습니다.")
 
         elif stage == "answer":
-            progress.empty()
             render_answer(payload)           # 6번
+            if gold:
+                progress.info("실제 정답과 견주고 있습니다.")
+            else:
+                progress.empty()
 
-    result = run_pipeline(selected_question, lang=lang_code, on_stage=on_stage)
+        elif stage == "grade":
+            progress.empty()
+            render_grade(payload)            # 7번
+
+    result = run_pipeline(selected_question, lang=lang_code,
+                          gold=gold, on_stage=on_stage)
 
     for stage_name, message in result.errors().items():
         st.warning(f"{stage_name} 단계가 실패했습니다. {message}")

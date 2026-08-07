@@ -1,31 +1,43 @@
-# 메신저 RAG - Streamlit 데모 앱 의존성
+# 메신저 RAG - 데모 앱 공통 의존성 (환경 무관)
 #
-#   pip install torch --index-url https://download.pytorch.org/whl/cpu   # 먼저!
-#   pip install -r requirements-app.txt
-#   streamlit run app.py
+# 이 파일만 단독으로 쓰지 말고, 환경에 맞는 쪽을 설치한다:
 #
-# torch 를 왜 따로 먼저 까나:
-#   그냥 `pip install torch` 하면 CUDA 빌드가 온다. nvidia-* 의존성까지 2.5~3GB 인데
-#   GPU 가 없으면 한 줄도 안 쓰인다. 위 CPU 인덱스를 쓰면 200MB 로 끝난다.
-#   GPU 팟(RunPod 등)에서 돌릴 때는 반대로 드라이버에 맞는 CUDA 빌드를 깔아야 한다.
-#   requirements_runpod.txt 상단 주석 참고 (cu128 등).
+#     로컬 PC (GPU 없음)   pip install -r requirements_local.txt
+#     RunPod 등 GPU 팟     pip install -r requirements_runpod.txt
 #
-# 모델은 첫 검색 때 HuggingFace 에서 자동으로 받는다(약 1.2GB, ~/.cache/huggingface).
-# 메모리는 모델 2.4GB + 나머지 0.7GB 정도라 여유 4GB 는 있어야 한다.
+# 둘 다 이 파일을 -r 로 끌어다 쓴다. 여기에는 torch 를 넣지 않았다.
+# torch 는 환경마다 받아야 할 빌드가 달라서(CPU 휠 / CUDA 휠) 각 파일이 따로 다룬다.
+#
+# 실행:
+#     streamlit run app.py
+#     python src/main.py --lang ko "질문"        # 터미널에서 파이프라인만
+#
+# .env 에 GEMINI_API_KEY 가 있어야 한다. .gitignore 로 제외돼 있으니 새 환경에서는
+# clone 후 직접 만든다.
+#     GEMINI_API_KEY=your-key-here
+#
+# 임베딩 모델(약 1.2GB)은 첫 검색 때 자동으로 받는다. ~/.cache/huggingface 에 남는다.
 
-# --- 화면 -----------------------------------------------------------------
+# --- 화면 (app.py) ---------------------------------------------------------
 streamlit>=1.40
 numpy>=1.24
 
-# --- 1,2 질의 재작성/확장 · 4 리랭킹 · 6 답변 생성 (src/multi_query.py,
-#     src/rerank.py, src/answer.py) — Gemini Flash-Lite
-# 키는 .env 의 GEMINI_API_KEY 에서 읽는다. .env 는 .gitignore 로 제외돼 있다.
+# --- 1,2 재작성/확장 · 4 리랭킹 · 6 답변 생성 -------------------------------
+# src/multi_query.py, src/rerank.py, src/answer.py — Gemini Flash-Lite
 google-genai>=1.0
 python-dotenv>=1.0
 
-# --- 3 질의 임베딩 + 청크 검색 (src/search.py, src/comparison.py) ----------
+# google-genai 는 라이브 세션용으로 websockets 를 import 하는데, 허용 범위가
+# 좁다(>=13,<15.1). 범위 밖 버전이 섞이면 genai 를 import 하는 것만으로 죽는다:
+#     ImportError: cannot import name 'BytesLike' from 'websockets.typing'
+# 다른 패키지(langsmith 는 >=15.0, langgraph-sdk 는 >=14,<16 ...)가 끌어올려
+# 어긋나는 일이 실제로 있었다. 그래서 여기서 못 박는다.
+websockets>=13.0,<15.1
+
+# --- 3 질의 임베딩 + 청크 검색 ----------------------------------------------
+# src/search.py, src/comparison.py
 # 문서 임베딩(data/emb/*.npz)을 만든 것과 같은 모델이어야 한다.
-#   microsoft/harrier-oss-v1-0.6b, 1024차원
+#     microsoft/harrier-oss-v1-0.6b, 1024차원
 # 모델을 바꾸면 벡터 공간이 달라져 코사인 유사도가 무의미해진다.
 sentence-transformers>=5.0
 transformers>=4.56

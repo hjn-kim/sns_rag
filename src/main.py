@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from answer import AnswerResult, generate_answer  # noqa: E402
 from comparison import MultiSearch, search_per_query  # noqa: E402
+from grade import GradeResult, grade_answer  # noqa: E402
 from multi_query import RewriteResult, all_queries, rewrite_query  # noqa: E402
 from rerank import FINAL_TOP_N, RerankResult, rerank  # noqa: E402
 from search import DEFAULT_TOP_K, LANGUAGES  # noqa: E402
@@ -65,6 +66,7 @@ class PipelineResult:
     comparison: MultiSearch | None = None   # 3 단계
     rerank: RerankResult | None = None      # 4, 5 단계
     answer: AnswerResult | None = None      # 6 단계
+    grade: GradeResult | None = None        # 7 단계 (정답표가 있을 때만)
     elapsed: float = 0.0
 
     @property
@@ -85,6 +87,8 @@ class PipelineResult:
             out["리랭킹"] = self.rerank.error
         if self.answer and self.answer.error:
             out["답변 생성"] = self.answer.error
+        if self.grade and self.grade.error:
+            out["정답 비교"] = self.grade.error
         return out
 
 
@@ -102,6 +106,7 @@ def run_pipeline(question: str, lang: str = "ko",
                  final_n: int = FINAL_TOP_N,
                  rerank_method: str = "llm",
                  use_llm: bool = True,
+                 gold: list[str] | None = None,
                  on_stage=None) -> PipelineResult:
     """
     질문 하나를 6단계에 통과시킨다.
@@ -109,10 +114,14 @@ def run_pipeline(question: str, lang: str = "ko",
     use_llm=False 면 Gemini 를 부르지 않는다. 원 질문 하나로 검색하고 리랭킹은
     RRF 로, 답변 생성은 건너뛴다. 키 없이 검색 품질만 확인할 때 쓴다.
 
+    gold 를 주면 7단계(정답 비교)까지 돈다. data/answer.json 에 적어 둔 정답
+    후보 목록이며, 화면에서 순번으로 찾아 넘긴다. 비어 있으면 건너뛴다.
+    판정은 문자열 포함이라 호출이 없고, use_llm 과 무관하게 돈다.
+
     on_stage(단계이름, 결과) 를 주면 단계가 끝날 때마다 부른다. 단계이름은
-    "rewrite" / "comparison" / "rerank" / "answer" 다. 화면이 결과를 기다리지
-    않고 끝난 단계부터 그릴 수 있게 하려는 것이다. 전체가 20초 넘게 걸리는데
-    다 끝나야 첫 카드가 뜨면 멈춘 것처럼 보인다.
+    "rewrite" / "comparison" / "rerank" / "answer" / "grade" 다. 화면이 결과를
+    기다리지 않고 끝난 단계부터 그릴 수 있게 하려는 것이다. 전체가 20초 넘게
+    걸리는데 다 끝나야 첫 카드가 뜨면 멈춘 것처럼 보인다.
     """
     started = time.time()
     language_name = LANGUAGES.get(lang, lang)
@@ -143,6 +152,13 @@ def run_pipeline(question: str, lang: str = "ko",
     ans = generate_answer(clean, rr.selected) if use_llm else None
     emit("answer", ans)
 
+    # --- 7 단계 : 정답 비교 -------------------------------------------------
+    # 정답표에 이 질문의 답이 있을 때만 돈다. 시연용 채점이라 없으면 건너뛴다.
+    gr = None
+    if gold:
+        gr = grade_answer(clean, ans.answer if (ans and ans.ok) else "", gold)
+        emit("grade", gr)
+
     return PipelineResult(
         question=clean,
         raw_question=question,
@@ -153,6 +169,7 @@ def run_pipeline(question: str, lang: str = "ko",
         comparison=ms,
         rerank=rr,
         answer=ans,
+        grade=gr,
         elapsed=time.time() - started,
     )
 
@@ -181,12 +198,16 @@ def main() -> None:
                         help="리랭킹 방식 (기본: llm)")
     parser.add_argument("--no-llm", action="store_true",
                         help="Gemini 를 전혀 부르지 않는다 (검색만)")
+    parser.add_argument("--gold", default=None, nargs="*",
+                        help="정답 후보. 주면 7단계(정답 비교)까지 돈다\n"
+                             "예: --gold 사법부 사법 Judiciary\n"
+                             "질문 순번으로 채점하려면 src/grade.py --run N 을 쓴다")
     args = parser.parse_args()
 
     question = " ".join(args.question) or "두 페이지만 있는 MDA는?"
     result = run_pipeline(question, lang=args.lang, top_k=args.top_k,
                           final_n=args.final_n, rerank_method=args.method,
-                          use_llm=not args.no_llm)
+                          use_llm=not args.no_llm, gold=args.gold)
 
     rw, ms, rr, ans = result.rewrite, result.comparison, result.rerank, result.answer
 
@@ -225,6 +246,13 @@ def main() -> None:
             print(f"    인용: {', '.join(ans.citations)}")
         if ans.note:
             print(f"    참고: {ans.note}")
+
+    gr = result.grade
+    if gr is not None:
+        mark = "O" if gr.correct else ("?" if gr.verdict == "판정 불가" else "X")
+        print(f"\n[7] 정답 비교    [{mark}] {gr.verdict}")
+        print(f"    LLM 정답  : {gr.llm_answer[:110]}")
+        print(f"    실제 정답 : {gr.gold_display}")
 
     for stage, message in result.errors().items():
         print(f"\n[!] {stage} 실패: {message}")
