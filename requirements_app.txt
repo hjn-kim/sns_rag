@@ -1,5 +1,6 @@
-# # python -m pip install --ignore-installed blinker -r requirements_app.txt
-#python -m streamlit run app.py \ --server.address=0.0.0.0 \ --server.port=8501 \ --server.enableCORS=false \ --server.enableXsrfProtection=false
+# python -m pip install --ignore-installed blinker -r requirements_app.txt
+# python -m streamlit run app.py --server.address=0.0.0.0 --server.port=8501 --server.enableCORS=false --server.enableXsrfProtection=false
+# pip uninstall -y torch torchvision torchaudio
 
 # --- 화면 (app.py) ---------------------------------------------------------
 streamlit>=1.40
