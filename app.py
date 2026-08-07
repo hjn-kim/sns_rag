@@ -242,8 +242,11 @@ def render_pooled(result) -> None:
 
 def render_rerank(rr) -> None:
     """4. 리랭킹 — 등수가 어떻게 바뀌었는지"""
-    method = ("Gemini" if rr.method == "llm"
-              else "RRF (질의별 등수 합산, 호출 없음)")
+    method = {
+        "llm": "Gemini",
+        "cross": f"크로스인코더 {rr.model or 'bge-reranker-v2-m3'}",
+        "rrf": "RRF (질의별 등수 합산, 호출 없음)",
+    }.get(rr.method, rr.method)
     rows = ""
     for item in rr.ranked:
         selected = item.rank_after <= len(rr.selected)

@@ -144,8 +144,15 @@ def run_pipeline(question: str, lang: str = "ko",
     emit("comparison", ms)
 
     # --- 4, 5 단계 : 리랭킹 + 최종 선정 -------------------------------------
-    rr = rerank(clean, ms, top_n=final_n,
-                method=rerank_method if use_llm else "rrf")
+    # "cross" 는 GPU 크로스인코더(rerank_gpu.py)다. 모델을 하나 더 올리므로
+    # 그 방식을 고를 때만 import 한다. 결과 자료구조는 rerank.py 것과 같아서
+    # 화면은 어느 쪽으로 돌렸는지 몰라도 된다.
+    if rerank_method == "cross":
+        from rerank_gpu import rerank_cross
+        rr = rerank_cross(clean, ms, top_n=final_n)
+    else:
+        rr = rerank(clean, ms, top_n=final_n,
+                    method=rerank_method if use_llm else "rrf")
     emit("rerank", rr)
 
     # --- 6 단계 : 답변 생성 -------------------------------------------------
@@ -194,8 +201,11 @@ def main() -> None:
                         help=f"질의당 검색할 청크 수 (기본: {DEFAULT_TOP_K})")
     parser.add_argument("--final-n", type=int, default=FINAL_TOP_N,
                         help=f"최종 선정 청크 수 (기본: {FINAL_TOP_N})")
-    parser.add_argument("--method", default="llm", choices=["llm", "rrf"],
-                        help="리랭킹 방식 (기본: llm)")
+    parser.add_argument("--method", default="llm", choices=["llm", "rrf", "cross"],
+                        help="리랭킹 방식 (기본: llm)\n"
+                             "  llm    Gemini 가 0~10 점을 매긴다. 판단 근거 문장이 나온다\n"
+                             "  cross  bge-reranker-v2-m3 로 직접 계산한다 (GPU 권장)\n"
+                             "  rrf    질의별 등수만 합산한다 (호출 없음)")
     parser.add_argument("--no-llm", action="store_true",
                         help="Gemini 를 전혀 부르지 않는다 (검색만)")
     parser.add_argument("--gold", default=None, nargs="*",
