@@ -310,12 +310,10 @@ def render_rerank(rr) -> None:
                     <tbody>{rows}</tbody>
                 </table>
             </div>
-            <div class="query-note">점수는 크로스인코더가 질의와 청크를 한 입력으로
-                붙여 읽고 낸 관련성입니다. 확률(0~1)에 10을 곱해 정수로 표시했고,
-                원래 값과 logit 은 판단 근거 칸에 있습니다. 검색 단계는 질의와 청크를
-                따로 벡터로 만들어 비교하지만(bi-encoder), 여기서는 둘을 같이 읽으므로
-                "주제만 겹치는 청크"와 "답이 실제로 든 청크"를 더 잘 가릅니다.
-                파랗게 칠한 줄이 5번에서 선정됩니다.</div>
+            <div class="query-note">점수는 cross-Encode가 질의와 청크를 한 입력으로
+                붙여 읽고 낸 관련성입니다. 확률에 10을 곱해 정수로 표시했고,
+                원래 값과 logit 은 판단 근거 칸에 있습니다. 질의와 청크를 같이 읽으므로 "주제만 겹치는 청크"와 "답이 실제로 든 청크"를 더 잘 가릅니다
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -825,8 +823,7 @@ st.markdown(
 # ---------------------------------------------------------
 st.markdown('<h1 class="main-title">문서 AI 모델 결과</h1>', unsafe_allow_html=True)
 st.markdown(
-    '<p class="subtitle">Multi-Query, pgvector, Cross-Encoder Reranking, topK, LLM'
-    f' <span class="tag">리랭커 · {escape(RERANKER_MODEL)}</span></p>',
+    '<p class="subtitle">Multi-Query, pgvector, BAAI/bge-reranker-v2-m3, topK, LLM</span></p>',
     unsafe_allow_html=True,
 )
 
