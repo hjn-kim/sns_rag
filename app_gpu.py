@@ -563,7 +563,9 @@ st.markdown(
             border-radius: 14px;
             padding: 1.25rem 1.35rem;
             background: #F9FAFB;
-            margin-top: 1rem;
+            /* 1~7번 카드가 세로로 이어지는 간격. 카드마다 st.markdown 이 따로
+               나가므로 카드 사이 여백은 이 margin-top 하나로 결정된다. */
+            margin-top: 1.2rem;
         }
 
         .card-title {
@@ -823,7 +825,7 @@ st.markdown(
 # ---------------------------------------------------------
 st.markdown('<h1 class="main-title">문서 AI 모델 결과</h1>', unsafe_allow_html=True)
 st.markdown(
-    '<p class="subtitle">Multi-Query, pgvector, BAAI/bge-reranker-v2-m3, topK, LLM</span></p>',
+    '<p class="subtitle">Multi-Query, harrier-oss-v1, BAAI/bge-reranker-v2-m3, LLM</span></p>',
     unsafe_allow_html=True,
 )
 
