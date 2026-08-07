@@ -28,23 +28,33 @@ st.set_page_config(
 # 선택 항목
 # ---------------------------------------------------------
 QUESTION_OPTIONS = [
-    "When is the next workshop?",
-    "How do I extract data from the budget PDF?",
-    "Which MDAs are still open to work on?",
-    "What tool do they use for visualisation?",
-    "Is there a deadline for submission?",
-    "다음 워크숍이 언제야?",
-    "예산 PDF에서 데이터를 어떻게 추출해?",
-    "아직 작업 안 된 부처가 뭐가 남았어?",
+    "1. 다음 워크숍은 언제, 어디에서 열리나요?",
+"2. 튜토리얼에서 데이터 추출 함수를 만들기 위해 어느 부처의 데이터를 사용했나요?",
+"3. 가입 과정에서 직장 또는 학생 이메일을 요구한 소프트웨어는 무엇인가요?",
+"1. When and where is the next workshop scheduled to take place?",
+"2. Which ministry's data was used in the tutorials to create the extraction functions?",
+"3. Which software asked the user for a work or student email during the sign-up process?",
+"1. 下一次研讨会将在何时、何地举行？",
+"2. 教程中使用了哪个部门的数据来创建数据提取函数？",
+"3. 哪个软件在注册过程中要求用户提供工作邮箱或学生邮箱？",
+"1. Hội thảo tiếp theo dự kiến diễn ra khi nào và ở đâu?",
+"2. Dữ liệu của bộ nào đã được sử dụng trong các hướng dẫn để tạo các hàm trích xuất dữ liệu?",
+"3. Phần mềm nào yêu cầu người dùng cung cấp email công việc hoặc email sinh viên trong quá trình đăng ký?",
+"1. Kailan at saan gaganapin ang susunod na workshop?",
+"2. Ang datos ng aling ministry ang ginamit sa mga tutorial upang gumawa ng mga extraction function?",
+"3. Aling software ang humingi sa user ng work o student email sa proseso ng pag-sign up?",
+"1. Когда и где запланирован следующий семинар?",
+"2. Данные какого министерства использовались в учебных материалах для создания функций извлечения данных?",
+"3. Какая программа запросила у пользователя рабочий или студенческий адрес электронной почты при регистрации?"
 ]
 
 DOCUMENT_OPTIONS = {
     "한국어": "ko",
     "영어": "en",
-    "베트남어": "vi",
-    "필리핀어": "fil",
-    "러시아어": "ru",
     "중국어": "zh",
+    "필리핀어": "fil",
+    "베트남어": "vi",
+    "러시아어": "ru",
 }
 
 PIPELINE_STEPS = [
