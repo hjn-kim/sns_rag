@@ -1,4 +1,5 @@
 # # python -m pip install --ignore-installed blinker -r requirements_app.txt
+#python -m streamlit run app.py \ --server.address=0.0.0.0 \ --server.port=8501 \ --server.enableCORS=false \ --server.enableXsrfProtection=false
 
 # --- 화면 (app.py) ---------------------------------------------------------
 streamlit>=1.40
@@ -21,5 +22,5 @@ websockets>=13.0,<15.1
 # 문서 임베딩(data/emb/*.npz)을 만든 것과 같은 모델이어야 한다.
 #     microsoft/harrier-oss-v1-0.6b, 1024차원
 # 모델을 바꾸면 벡터 공간이 달라져 코사인 유사도가 무의미해진다.
-sentence-transformers>=5.0
-transformers>=4.56
+sentence-transformers>=5.0, <6
+transformers>=4.56, <5
