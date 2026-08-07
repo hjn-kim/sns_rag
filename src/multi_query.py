@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-질의 재작성 / 질의 확장 (Gemini Flash-Lite)
+1. 질의 재작성 + 2. 질의 확장  (Gemini Flash-Lite)
 
 질문 하나를 넣으면 한 번의 호출로 둘을 받는다.
 
@@ -20,7 +20,7 @@
 
 Streamlit 에 의존하지 않는다. 캐싱은 호출하는 쪽에서 한다.
 
-    from src.query_rewrite import rewrite_query
+    from multi_query import rewrite_query
     result = rewrite_query("다음 워크숍이 언제야?", language="한국어")
     result.rewritten      # str
     result.expansions     # list[str] (3개)
@@ -28,8 +28,8 @@ Streamlit 에 의존하지 않는다. 캐싱은 호출하는 쪽에서 한다.
 
 단독 실행하면 바로 확인할 수 있다:
 
-    python src/query_rewrite.py "다음 워크숍이 언제야?"
-    python src/query_rewrite.py --list-models
+    python src/multi_query.py "다음 워크숍이 언제야?"
+    python src/multi_query.py --list-models
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ except ImportError:  # pragma: no cover
 # 비용을 고정하려면 지금처럼 버전을 명시한 이름을 쓴다.
 #
 # 다른 모델을 쓰려면 .env 에 GEMINI_MODEL 을 넣는다.
-# 쓸 수 있는 이름은 `python src/query_rewrite.py --list-models` 로 확인한다.
+# 쓸 수 있는 이름은 `python src/multi_query.py --list-models` 로 확인한다.
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 
 N_EXPANSIONS = 3

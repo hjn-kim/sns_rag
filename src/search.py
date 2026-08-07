@@ -20,10 +20,16 @@ embedding.py 가 만들어 둔 data/emb/{lang}/*.npz 를 읽어 하나의 인덱
                   embedding.py 가 bf16 오차를 float32 에서 다시 맞췄다.
                   질의도 같은 처리를 해야 내적을 그대로 코사인으로 쓸 수 있다.
 
+이 파일은 저수준 검색 엔진이다. 파이프라인 3단계(질의별 등수 비교)는
+comparison.py 에 있다.
+
 다중 질의(재작성 1 + 확장 3 + 원 질문)는 max-pooling 으로 합친다.
 청크마다 "가장 잘 맞은 질의 하나"의 점수를 그 청크의 점수로 쓰고, 어느 질의가
 끌어올렸는지 Hit.matched_query 에 남긴다. 화면에서 "확장질의 2번이 찾음" 을
 보여줄 수 있고, 질의별 점수 스케일이 같은 모델이라 RRF 를 쓸 이유가 적다.
+
+같은 대화의 인접 청크를 걸러내지 않는다. 100토큰만 겹치고 400토큰은 서로 다른
+내용이라 지우면 손해가 더 크다. 자세한 이유는 search() 의 docstring 참고.
 
 인덱스와 모델은 lru_cache 로 프로세스당 한 번만 올린다. Streamlit 은 위젯을
 건드릴 때마다 스크립트를 다시 도는데, 캐시가 없으면 클릭마다 2.4GB 모델을
@@ -34,7 +40,7 @@ embedding.py 가 만들어 둔 data/emb/{lang}/*.npz 를 읽어 하나의 인덱
     python src/search.py --lang en "when is the next workshop"
     python src/search.py --lang ko --top-k 10 "예산 PDF 데이터 추출"
     python src/search.py --lang ko --rewrite "다음 워크숍이 언제야?"   # Gemini 재작성까지
-    python src/search.py --lang ko --no-dedup "..."                    # 인접 청크 병합 끄기
+    python src/search.py --lang ko --full "..."                        # 청크 본문 전체 출력
 """
 
 from __future__ import annotations
@@ -60,6 +66,10 @@ QUERY_PROMPT = "web_search_query"
 
 EMB_ROOT = ROOT / "data" / "emb"
 SRC_ROOT = ROOT / "data" / "whatsapp_chat_language"
+
+# 언어당 청크가 118~217개뿐이라 넉넉히 뽑아도 부담이 없다. 500토큰 x 10 = 5천 토큰이면
+# LLM 컨텍스트로도 여유롭다. 정답이 5~10위에 있는 경우가 있어 5는 너무 짜다.
+DEFAULT_TOP_K = 10
 
 # app.py 의 DOCUMENT_OPTIONS 와 같은 순서/코드
 LANGUAGES = {
@@ -114,18 +124,25 @@ class Hit:
     matched_query: str = ""
     matched_query_index: int = 0
 
+    # 이 청크를 자기 top-k 안에 넣은 질의 번호들. 여러 질의가 함께 뽑았다는 것은
+    # 그만큼 확신이 높다는 뜻이라, 나중에 리랭킹할 때 쓸 신호가 된다.
+    found_by: list[int] = field(default_factory=list)
+
     # 원본 JSON 에서 가져온 대화 메타 (없으면 빈 값)
     started_at: str = ""
     ended_at: str = ""
     n_utterances: int = 0
     participants: list[str] = field(default_factory=list)
 
-    # dedup 으로 흡수된 인접 청크들의 chunk_index
-    merged_with: list[int] = field(default_factory=list)
+    @property
+    def key(self) -> str:
+        """청크를 가리키는 고유 이름. 중복 제거의 기준."""
+        return f"{self.dialogue_id}#{self.chunk_index}"
 
     def preview(self, n: int = 200) -> str:
         one_line = " ".join(self.text.split())
         return one_line[:n] + ("..." if len(one_line) > n else "")
+
 
 
 # --------------------------------------------------------------------------
@@ -276,84 +293,39 @@ def encode_queries(queries: list[str], model_name: str = DEFAULT_MODEL,
 # 검색
 # --------------------------------------------------------------------------
 
-def _dedup_adjacent(order: np.ndarray, index: Index) -> list[tuple[int, list[int]]]:
-    """
-    같은 대화에서 이어붙은 청크가 나란히 올라오면 점수 높은 쪽만 남긴다.
-
-    청킹이 500토큰 / 중복 100토큰이라 인접 청크는 서로 100토큰을 공유한다.
-    둘 다 LLM 에 넣으면 같은 문장을 두 번 보내는 셈이라 컨텍스트만 낭비된다.
-    점수 내림차순으로 훑으므로 먼저 채택된 쪽이 항상 더 높은 점수다.
-
-    (선택된 행 번호, 흡수된 인접 청크 번호들) 목록을 돌려준다.
-    """
-    kept: list[tuple[int, list[int]]] = []
-
-    for row in order:
-        did = index.dialogue_ids[row]
-        cidx = int(index.chunk_indices[row])
-
-        # 이미 채택한 청크와 붙어 있으면(번호 차이 1 이하) 그쪽에 흡수시킨다.
-        absorbed_into = next((i for i, (r, _) in enumerate(kept)
-                              if index.dialogue_ids[r] == did
-                              and abs(int(index.chunk_indices[r]) - cidx) <= 1), None)
-        if absorbed_into is not None:
-            kept[absorbed_into][1].append(cidx)
-            continue
-
-        kept.append((int(row), []))
-    return kept
-
-
-def search(queries: list[str], lang: str = "ko", top_k: int = 5,
-           dedup: bool = True, model_name: str = DEFAULT_MODEL,
+def search(queries: list[str], lang: str = "ko", top_k: int = DEFAULT_TOP_K,
+           model_name: str = DEFAULT_MODEL,
            device: str | None = None) -> list[Hit]:
     """
-    질의 여러 개로 청크를 찾는다.
+    질의 여러 개를 max-pooling 으로 합쳐 상위 top_k 를 돌려준다.
 
-    다중 질의는 max-pooling 으로 합친다. 청크마다 가장 잘 맞은 질의의 점수를 쓰고,
-    그 질의가 무엇이었는지 Hit.matched_query 에 남긴다.
+    청크마다 가장 잘 맞은 질의의 점수를 그 청크의 점수로 쓴다. 결과가 한 줄로
+    나오면 되는 곳(CLI 등)에서 쓴다. 질의별 순위를 따로 보려면 파이프라인
+    3단계인 comparison.search_per_query() 를 쓴다.
+
+    인접 청크를 걸러내지 않는 이유:
+      청킹이 500토큰 / 중복 100토큰이라 인접 청크는 100토큰만 공유하고 400토큰은
+      서로 다른 내용이다. 중복이라고 지우면 20%를 아끼려다 80%를 버리게 된다.
+      게다가 인접 청크가 나란히 높은 점수를 받았다는 건 그 구간이 실제로 관련
+      있다는 신호다. 전체가 언어당 200청크 안팎이라 컨텍스트를 아낄 이유도 없다.
+      겹치는 텍스트 정리는 LLM 에 넣기 직전 조립 단계에서, 버리는 대신 토큰 범위를
+      이어붙이는 방식으로 해야 한다.
     """
     index = load_index(lang)
-    query_vectors = encode_queries(queries, model_name, device)
     clean = [q.strip() for q in queries if q and q.strip()]
+    query_vectors = encode_queries(clean, model_name, device)
+    meta = load_metadata(lang)
 
-    # (Q, N) 전부 정규화돼 있으므로 내적이 곧 코사인 유사도다.
-    # 891청크 기준 행렬이 3.6MB 라 브루트포스가 FAISS 보다 빠르고 정확하다.
     scores = query_vectors @ index.vectors.T
-
     best_score = scores.max(axis=0)          # (N,) 청크별 최고점
     best_query = scores.argmax(axis=0)       # (N,) 그 점수를 낸 질의 번호
 
-    # dedup 으로 몇 개가 빠질지 모르니 넉넉히 뽑아 두고 나중에 자른다.
-    n_candidates = min(index.size, max(top_k * 4, top_k))
-    order = np.argsort(-best_score)[:n_candidates]
-
-    selected = (_dedup_adjacent(order, index) if dedup
-                else [(int(r), []) for r in order])
-
-    meta = load_metadata(lang)
-
-    hits: list[Hit] = []
-    for row, merged in selected[:top_k]:
-        info = meta.get(index.dialogue_ids[row], {})
-        qi = int(best_query[row])
-        hits.append(Hit(
-            score=float(best_score[row]),
-            text=str(index.texts[row]),
-            lang=lang,
-            dialogue_id=index.dialogue_ids[row],
-            chunk_index=int(index.chunk_indices[row]),
-            token_start=int(index.token_starts[row]),
-            token_end=int(index.token_ends[row]),
-            matched_query=clean[qi] if qi < len(clean) else "",
-            matched_query_index=qi,
-            started_at=str(info.get("startedAt", "")),
-            ended_at=str(info.get("endedAt", "")),
-            n_utterances=int(info.get("numberOfUtterances", 0) or 0),
-            participants=list(info.get("participants", []) or []),
-            merged_with=sorted(merged),
-        ))
-    return hits
+    order = np.argsort(-best_score)[:min(top_k, index.size)]
+    return [
+        _make_hit(index, meta, int(r), float(best_score[r]),
+                  clean, int(best_query[r]), [int(best_query[r])])
+        for r in order
+    ]
 
 
 # --------------------------------------------------------------------------
@@ -374,12 +346,11 @@ def main() -> None:
     parser.add_argument("question", nargs="*", help="검색할 질문")
     parser.add_argument("--lang", default="ko", choices=list(LANGUAGES),
                         help="검색할 색인 언어 (기본: ko)")
-    parser.add_argument("--top-k", type=int, default=5, help="보여줄 청크 수 (기본: 5)")
+    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K,
+                        help=f"보여줄 청크 수 (기본: {DEFAULT_TOP_K})")
     parser.add_argument("--rewrite", action="store_true",
                         help="Gemini 로 재작성/확장한 질의까지 함께 검색한다\n"
                              "(.env 의 GEMINI_API_KEY 필요)")
-    parser.add_argument("--no-dedup", action="store_true",
-                        help="같은 대화의 인접 청크를 합치지 않는다")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"임베딩 모델 (기본: {DEFAULT_MODEL})")
     parser.add_argument("--device", default=None, help="cpu / cuda (기본: 자동 판별)")
     parser.add_argument("--full", action="store_true", help="청크 본문을 자르지 않고 전부 출력")
@@ -412,15 +383,13 @@ def main() -> None:
     print("\n모델 로드 중... (최초 1회만 느립니다)")
     started = time.time()
     hits = search(queries, lang=args.lang, top_k=args.top_k,
-                  dedup=not args.no_dedup, model_name=args.model, device=args.device)
+                  model_name=args.model, device=args.device)
     elapsed = time.time() - started
 
     print(f"검색 완료 - {elapsed:.1f}초\n")
     for rank, hit in enumerate(hits, 1):
-        head = f"[{rank}] {hit.score:.4f}  {hit.dialogue_id}#{hit.chunk_index}"
-        if hit.merged_with:
-            head += f" (+인접 {','.join(str(c) for c in hit.merged_with)})"
-        print(head)
+        print(f"[{rank}] {hit.score:.4f}  {hit.dialogue_id}#{hit.chunk_index}"
+              f"  (토큰 {hit.token_start}~{hit.token_end})")
         if hit.started_at:
             who = ", ".join(hit.participants[:3])
             more = f" 외 {len(hit.participants) - 3}명" if len(hit.participants) > 3 else ""
