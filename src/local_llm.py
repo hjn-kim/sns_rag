@@ -261,6 +261,9 @@ def rewrite_query_local(question: str, language: str = "영어",
                              error=f"{type(exc).__name__}: {exc}")
 
     rewritten = (data.get("rewritten") or "").strip() or question
+    # multi_query.rewrite_query() 와 같은 후처리. 재작성은 무조건 평서문이라
+    # 모델이 물음표를 남기면 떼어낸다.
+    rewritten = rewritten.rstrip("?？").strip() or question
     expansions = [str(x).strip() for x in (data.get("expansions") or [])
                   if str(x).strip()][:N_EXPANSIONS]
 
