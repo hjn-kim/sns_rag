@@ -65,6 +65,9 @@ data/answer.json 에 적어 둔 정답 후보들과 6단계 답변을 견줘 맞
     python src/grade.py --run 1         # 1번 질문을 파이프라인에 태우고 채점
     python src/grade.py --run all       # 18개 전부 + 정답률
 
+    # 질문 18개 x 색인 6개 = 108회. 한 프로세스에서 도므로 모델은 한 번만 올라간다.
+    python src/grade.py --run all --doc-lang all --backend qwen --method cross
+
     # 앱과 같은 설정으로 채점하려면 백엔드를 맞춰야 한다.
     #   app.py                  --backend gemini --method llm     (기본값)
     #   app_gpu_tabs.py         --backend gemini --method cross
@@ -280,10 +283,13 @@ def main() -> None:
                         help="4 단계 리랭킹 방식 (기본: llm)")
     parser.add_argument("--lang", default=None, choices=list(GOLD_LANGS),
                         help="이 언어의 3문항만 채점한다 (기본: 전부)")
-    parser.add_argument("--doc-lang", default=None, choices=list(GOLD_LANGS),
+    parser.add_argument("--doc-lang", default=None,
+                        choices=list(GOLD_LANGS) + ["all"],
                         help="모든 문항을 이 색인에서 검색한다 (기본: 질문과 같은 언어)\n"
                              "교차 언어 검색을 채점할 때 쓴다. 정답 후보도 이 언어 것으로\n"
-                             "바뀐다. 예: --lang ko --doc-lang ru (한국어 질문 -> 러시아어 색인)")
+                             "바뀐다. 예: --lang ko --doc-lang ru (한국어 질문 -> 러시아어 색인)\n"
+                             "all 을 주면 6개 색인을 차례로 돌고 교차표를 찍는다.\n"
+                             "모델은 프로세스당 한 번만 올라가므로 셸 반복문보다 훨씬 빠르다")
     args = parser.parse_args()
 
     gold = load_gold()
@@ -316,43 +322,78 @@ def main() -> None:
     if args.lang:
         targets = [i for i in targets if question_lang(i) == args.lang]
 
-    print(f"채점 {len(targets)}문항 · 1·2·6단계 {args.backend} · "
-          f"4단계 {args.method}"
+    # 돌릴 색인 목록.
+    #   지정 없음   질문마다 그 질문이 적힌 언어의 색인 (기존 동작)
+    #   ko/en/...   전부 그 색인 하나로 (교차 언어)
+    #   all         6개 색인을 차례로 = 질문언어 x 문서언어 전 조합
+    #
+    # all 을 셸 반복문 대신 여기서 도는 이유: 모델이 프로세스당 한 번만 올라간다
+    # (load_llm / 리랭커 / 임베딩 모두 lru_cache). 밖에서 6번 부르면 Qwen3-8B
+    # 16GB 를 6번 다시 읽는다.
+    if args.doc_lang == "all":
+        doc_targets: list[str | None] = list(GOLD_LANGS)
+    elif args.doc_lang:
+        doc_targets = [args.doc_lang]
+    else:
+        doc_targets = [None]
+
+    n_runs = len(targets) * len(doc_targets)
+    print(f"채점 {n_runs}회 (문항 {len(targets)} x 색인 {len(doc_targets)}) · "
+          f"1·2·6단계 {args.backend} · 4단계 {args.method}"
           + (f" · 색인 {args.doc_lang} 고정" if args.doc_lang else ""))
 
-    rows = []
-    for i in targets:
-        question = options[i - 1]
-        # --doc-lang 을 주면 교차 언어 검색이 된다. 답변도 정답 후보도 색인 언어를 따른다.
-        lang = args.doc_lang or question_lang(i)
-        result = run_pipeline(question, lang=lang, gold=gold_for(i, lang),
-                              llm_backend=args.backend,
-                              rerank_method=args.method)
-        gr = result.grade
-        rows.append((i, lang, gr))
+    started_all = time.time()
+    rows = []       # (순번, 질문 언어, 문서 언어, GradeResult)
+    for doc_lang in doc_targets:
+        if len(doc_targets) > 1:
+            print(f"\n{'=' * 60}\n색인 {doc_lang}\n{'=' * 60}")
+        for i in targets:
+            question = options[i - 1]
+            # doc_lang 을 주면 교차 언어 검색이 된다. 답변도 정답 후보도 색인 언어를 따른다.
+            lang = doc_lang or question_lang(i)
+            result = run_pipeline(question, lang=lang, gold=gold_for(i, lang),
+                                  llm_backend=args.backend,
+                                  rerank_method=args.method)
+            gr = result.grade
+            rows.append((i, question_lang(i), lang, gr))
 
-        mark = "O" if gr.correct else ("?" if gr.verdict == "판정 불가" else "X")
-        print(f"\n[{mark}] {i:>2}번 ({lang})  {gr.verdict}   {result.elapsed:.1f}초")
-        print(f"     LLM 정답  : {gr.llm_answer[:110]}")
-        print(f"     실제 정답 : {gr.gold_display}")
-        # 단계별 실패는 조용히 넘어가면 정답률만 보고 원인을 못 찾는다.
-        for stage, message in result.errors().items():
-            print(f"     [!] {stage} 실패: {message[:90]}")
+            mark = "O" if gr.correct else ("?" if gr.verdict == "판정 불가" else "X")
+            print(f"\n[{mark}] {i:>2}번 (질문 {question_lang(i)} -> 색인 {lang})  "
+                  f"{gr.verdict}   {result.elapsed:.1f}초")
+            print(f"     LLM 정답  : {gr.llm_answer[:110]}")
+            print(f"     실제 정답 : {gr.gold_display}")
+            # 단계별 실패는 조용히 넘어가면 정답률만 보고 원인을 못 찾는다.
+            for stage, message in result.errors().items():
+                print(f"     [!] {stage} 실패: {message[:90]}")
 
     if len(rows) > 1:
-        n_ok = sum(1 for _, _, g in rows if g.correct)
-        print(f"\n정답 {n_ok}/{len(rows)}  "
-              f"({args.backend} · {args.method})")
-        wrong = [f"{i}({lang})" for i, lang, g in rows if not g.correct]
+        n_ok = sum(1 for *_, g in rows if g.correct)
+        print(f"\n정답 {n_ok}/{len(rows)}  ({args.backend} · {args.method}) · "
+              f"총 {time.time() - started_all:.0f}초")
+        wrong = [f"{i}({q}->{d})" for i, q, d, g in rows if not g.correct]
         if wrong:
             print(f"틀린 문항: {', '.join(wrong)}")
 
-        # 언어별로 나눠 보면 특정 언어의 번역 품질 문제인지 구분된다.
+        # 문서 언어별로 나눠 보면 특정 언어의 번역 품질 문제인지 구분된다.
         by_lang: dict[str, list[bool]] = {}
-        for _, lang, g in rows:
-            by_lang.setdefault(lang, []).append(g.correct)
-        print("언어별: " + "  ".join(
+        for _, _, doc, g in rows:
+            by_lang.setdefault(doc, []).append(g.correct)
+        print("문서 언어별: " + "  ".join(
             f"{lang} {sum(v)}/{len(v)}" for lang, v in by_lang.items()))
+
+        # --doc-lang all 이면 교차표까지. 대각선이 같은 언어끼리 물은 경우다.
+        if len(doc_targets) > 1:
+            langs = [d for d in doc_targets if d]
+            print("\n질문(행) x 문서(열)")
+            print(f"{'':>6}" + "".join(f"{d:>7}" for d in langs))
+            for q in GOLD_LANGS:
+                cells = []
+                for d in langs:
+                    v = [g.correct for _, ql, dl, g in rows
+                         if ql == q and dl == d]
+                    cells.append(f"{sum(v)}/{len(v)}" if v else "-")
+                if any(c != "-" for c in cells):
+                    print(f"{q:>6}" + "".join(f"{c:>7}" for c in cells))
 
 
 if __name__ == "__main__":
