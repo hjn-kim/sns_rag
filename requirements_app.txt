@@ -1,7 +1,9 @@
-# python -m pip install --ignore-installed blinker -r requirements_app.txt
-# python -m streamlit run app_gpu_tabs.py --server.address=0.0.0.0 --server.port=8501 --server.enableCORS=false --server.enableXsrfProtection=false
-# export api
 # pip uninstall -y torch torchvision torchaudio
+# python -m pip install --ignore-installed blinker -r requirements_app.txt
+# export api
+# python -m streamlit run app_gpu_tabs.py --server.address=0.0.0.0 --server.port=8501 --server.enableCORS=false --server.enableXsrfProtection=false
+
+
 
 # --- 화면 (app.py) ---------------------------------------------------------
 streamlit>=1.40
