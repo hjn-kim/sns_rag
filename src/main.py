@@ -108,6 +108,7 @@ def run_pipeline(question: str, lang: str = "ko",
                  use_llm: bool = True,
                  gold: list[str] | None = None,
                  llm_backend: str = "gemini",
+                 answer_language: str | None = None,
                  on_stage=None) -> PipelineResult:
     """
     질문 하나를 6단계에 통과시킨다.
@@ -123,6 +124,10 @@ def run_pipeline(question: str, lang: str = "ko",
         "gemini"  API 호출. 키가 필요하다. (기본)
         "qwen"    로컬 Qwen3-8B. 키가 필요 없고 GPU 가 필요하다.
     4 단계 리랭킹은 rerank_method 로 따로 정한다.
+
+    lang 은 검색할 색인의 언어다. 그 언어 이름을 1·2 단계에는 확장 대상 언어로,
+    6 단계에는 근거 문서의 언어로 넘긴다. answer_language 를 주면 6 단계가 질문
+    언어와 무관하게 그 언어로 답한다. 안 주면 질문 언어를 따라간다.
 
     on_stage(단계이름, 결과) 를 주면 단계가 끝날 때마다 부른다. 단계이름은
     "rewrite" / "comparison" / "rerank" / "answer" / "grade" 다. 화면이 결과를
@@ -171,9 +176,13 @@ def run_pipeline(question: str, lang: str = "ko",
         ans = None
     elif llm_backend == "qwen":
         from local_llm import generate_answer_local
-        ans = generate_answer_local(clean, rr.selected)
+        ans = generate_answer_local(clean, rr.selected,
+                                    doc_language=language_name,
+                                    answer_language=answer_language)
     else:
-        ans = generate_answer(clean, rr.selected)
+        ans = generate_answer(clean, rr.selected,
+                              doc_language=language_name,
+                              answer_language=answer_language)
     emit("answer", ans)
 
     # --- 7 단계 : 정답 비교 -------------------------------------------------
@@ -213,7 +222,11 @@ def main() -> None:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("question", nargs="*")
-    parser.add_argument("--lang", default="ko", choices=list(LANGUAGES))
+    parser.add_argument("--lang", default="ko", choices=list(LANGUAGES),
+                        help="검색할 색인(근거 문서)의 언어 (기본: ko)")
+    parser.add_argument("--answer-lang", default=None,
+                        help="6단계 답변을 쓸 언어 이름. 예: --answer-lang 한국어\n"
+                             "(기본: 질문과 같은 언어)")
     parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K,
                         help=f"질의당 검색할 청크 수 (기본: {DEFAULT_TOP_K})")
     parser.add_argument("--final-n", type=int, default=FINAL_TOP_N,
@@ -239,7 +252,8 @@ def main() -> None:
     result = run_pipeline(question, lang=args.lang, top_k=args.top_k,
                           final_n=args.final_n, rerank_method=args.method,
                           use_llm=not args.no_llm, gold=args.gold,
-                          llm_backend=args.backend)
+                          llm_backend=args.backend,
+                          answer_language=args.answer_lang)
 
     rw, ms, rr, ans = result.rewrite, result.comparison, result.rerank, result.answer
 

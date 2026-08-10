@@ -58,9 +58,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from answer import (  # noqa: E402
     RESPONSE_SCHEMA as ANSWER_SCHEMA,
-    SYSTEM_PROMPT as ANSWER_SYSTEM,
     AnswerResult,
     build_context,
+    build_system_prompt,
 )
 from multi_query import (  # noqa: E402
     N_EXPANSIONS,
@@ -281,9 +281,12 @@ def rewrite_query_local(question: str, language: str = "영어",
 
 def generate_answer_local(question: str, chunks: list[Hit],
                           model: str | None = None,
-                          device: str | None = None) -> AnswerResult:
+                          device: str | None = None,
+                          doc_language: str | None = None,
+                          answer_language: str | None = None) -> AnswerResult:
     """
     answer.generate_answer() 의 로컬 판. 프롬프트와 스키마를 그대로 쓴다.
+    근거 언어(doc_language)·답변 언어(answer_language) 도 원본과 같이 받는다.
 
     인용 검증도 원본과 같다. 모델이 지어낸 청크 id 는 버린다. 로컬 모델은
     Gemini 보다 이런 실수가 잦아서 이 방어막이 더 중요하다.
@@ -299,7 +302,7 @@ def generate_answer_local(question: str, chunks: list[Hit],
 
     try:
         data = generate_json(
-            ANSWER_SYSTEM,
+            build_system_prompt(doc_language, answer_language),
             (f"질문: {question}\n\n"
              f"근거 청크 {len(chunks)}개:\n\n{build_context(chunks)}"),
             ANSWER_SCHEMA,
@@ -343,7 +346,10 @@ def main() -> None:
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("question", nargs="*")
-    parser.add_argument("--lang", default="ko", choices=list(LANGUAGES))
+    parser.add_argument("--lang", default="ko", choices=list(LANGUAGES),
+                        help="검색할 색인(근거 문서)의 언어 (기본: ko)")
+    parser.add_argument("--answer-lang", default=None,
+                        help="답변을 쓸 언어 이름 (기본: 질문과 같은 언어)")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--device", default=None, help="cpu / cuda (기본: 자동)")
     parser.add_argument("--answer", action="store_true",
@@ -380,7 +386,9 @@ def main() -> None:
           f"{', '.join(h.key for h in rr.selected)}")
 
     ans = generate_answer_local(question, rr.selected,
-                                model=args.model, device=args.device)
+                                model=args.model, device=args.device,
+                                doc_language=LANGUAGES[args.lang],
+                                answer_language=args.answer_lang)
     if not ans.ok:
         sys.exit(f"\n[6] 답변 생성 실패: {ans.error}")
     print(f"\n[6] 답변 생성    ({ans.elapsed:.1f}초, 근거 충분: "
