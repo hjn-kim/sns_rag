@@ -1066,18 +1066,16 @@ st.markdown(
             line-height: 1.65;
             font-weight: 500;
         }
+        /* 답변 본문과 같은 크기·색으로 둔다. color 를 지정하지 않아야
+           .answer-text 와 똑같이 테마 기본 글자색을 물려받는다 (다크 모드 포함). */
         .cite-row {
             margin-top: 0.7rem;
-            font-size: 0.8rem;
-            color: #98A2B3;
+            font-size: 1.05rem;
+            line-height: 1.65;
+            font-weight: 500;
         }
         .cite {
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 0.76rem;
-            background: rgba(76, 110, 245, 0.12);
-            color: #3B5BDB;
-            border-radius: 4px;
-            padding: 0.08rem 0.4rem;
+            font-weight: 700;
             margin-left: 0.3rem;
         }
         .cite-none { margin-left: 0.3rem; }
@@ -1311,7 +1309,7 @@ with tab_demo:
         progress = st.empty()
         progress.info(
             f"{LLM_MODEL} 로 질의를 재작성하고 있습니다. "
-            "(최초 1회는 모델을 GPU 에 올리느라 1~2분 걸립니다)"
+            "(예상 시간: 1분)"
         )
 
         # 3-1 표의 열 이름을 붙이려면 재작성 결과가 필요하다. 콜백끼리 넘기기 위해

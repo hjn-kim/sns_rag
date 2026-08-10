@@ -1018,18 +1018,16 @@ st.markdown(
             line-height: 1.65;
             font-weight: 500;
         }
+        /* 답변 본문과 같은 크기·색으로 둔다. color 를 지정하지 않아야
+           .answer-text 와 똑같이 테마 기본 글자색을 물려받는다 (다크 모드 포함). */
         .cite-row {
             margin-top: 0.7rem;
-            font-size: 0.8rem;
-            color: #98A2B3;
+            font-size: 1.05rem;
+            line-height: 1.65;
+            font-weight: 500;
         }
         .cite {
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-            font-size: 0.76rem;
-            background: rgba(76, 110, 245, 0.12);
-            color: #3B5BDB;
-            border-radius: 4px;
-            padding: 0.08rem 0.4rem;
+            font-weight: 700;
             margin-left: 0.3rem;
         }
         .cite-none { margin-left: 0.3rem; }
