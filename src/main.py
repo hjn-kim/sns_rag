@@ -107,6 +107,7 @@ def run_pipeline(question: str, lang: str = "ko",
                  rerank_method: str = "llm",
                  use_llm: bool = True,
                  gold: list[str] | None = None,
+                 llm_backend: str = "gemini",
                  on_stage=None) -> PipelineResult:
     """
     질문 하나를 6단계에 통과시킨다.
@@ -117,6 +118,11 @@ def run_pipeline(question: str, lang: str = "ko",
     gold 를 주면 7단계(정답 비교)까지 돈다. data/answer.json 에 적어 둔 정답
     후보 목록이며, 화면에서 순번으로 찾아 넘긴다. 비어 있으면 건너뛴다.
     판정은 문자열 포함이라 호출이 없고, use_llm 과 무관하게 돈다.
+
+    llm_backend 는 1·2 단계와 6 단계를 무엇으로 돌릴지 정한다.
+        "gemini"  API 호출. 키가 필요하다. (기본)
+        "qwen"    로컬 Qwen3-8B. 키가 필요 없고 GPU 가 필요하다.
+    4 단계 리랭킹은 rerank_method 로 따로 정한다.
 
     on_stage(단계이름, 결과) 를 주면 단계가 끝날 때마다 부른다. 단계이름은
     "rewrite" / "comparison" / "rerank" / "answer" / "grade" 다. 화면이 결과를
@@ -132,10 +138,15 @@ def run_pipeline(question: str, lang: str = "ko",
             on_stage(stage, payload)
 
     # --- 1, 2 단계 : 재작성 + 확장 -----------------------------------------
-    if use_llm:
-        rw = rewrite_query(clean, language=language_name)
-    else:
+    # llm_backend="qwen" 이면 Gemini 대신 로컬 Qwen3-8B 를 쓴다. 16GB 모델을
+    # 올리므로 그 backend 를 고를 때만 import 한다.
+    if not use_llm:
         rw = RewriteResult(question=clean, rewritten=clean)
+    elif llm_backend == "qwen":
+        from local_llm import rewrite_query_local
+        rw = rewrite_query_local(clean, language=language_name)
+    else:
+        rw = rewrite_query(clean, language=language_name)
     queries = all_queries(rw)
     emit("rewrite", rw)
 
@@ -156,7 +167,13 @@ def run_pipeline(question: str, lang: str = "ko",
     emit("rerank", rr)
 
     # --- 6 단계 : 답변 생성 -------------------------------------------------
-    ans = generate_answer(clean, rr.selected) if use_llm else None
+    if not use_llm:
+        ans = None
+    elif llm_backend == "qwen":
+        from local_llm import generate_answer_local
+        ans = generate_answer_local(clean, rr.selected)
+    else:
+        ans = generate_answer(clean, rr.selected)
     emit("answer", ans)
 
     # --- 7 단계 : 정답 비교 -------------------------------------------------
@@ -206,6 +223,10 @@ def main() -> None:
                              "  llm    Gemini 가 0~10 점을 매긴다. 판단 근거 문장이 나온다\n"
                              "  cross  bge-reranker-v2-m3 로 직접 계산한다 (GPU 권장)\n"
                              "  rrf    질의별 등수만 합산한다 (호출 없음)")
+    parser.add_argument("--backend", default="gemini", choices=["gemini", "qwen"],
+                        help="1·2·6 단계를 무엇으로 돌릴지 (기본: gemini)\n"
+                             "  gemini  API 호출. 키 필요\n"
+                             "  qwen    로컬 Qwen3-8B. 키 불필요, GPU 필요")
     parser.add_argument("--no-llm", action="store_true",
                         help="Gemini 를 전혀 부르지 않는다 (검색만)")
     parser.add_argument("--gold", default=None, nargs="*",
@@ -217,7 +238,8 @@ def main() -> None:
     question = " ".join(args.question) or "두 페이지만 있는 MDA는?"
     result = run_pipeline(question, lang=args.lang, top_k=args.top_k,
                           final_n=args.final_n, rerank_method=args.method,
-                          use_llm=not args.no_llm, gold=args.gold)
+                          use_llm=not args.no_llm, gold=args.gold,
+                          llm_backend=args.backend)
 
     rw, ms, rr, ans = result.rewrite, result.comparison, result.rerank, result.answer
 

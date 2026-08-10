@@ -26,3 +26,22 @@ websockets>=13.0,<15.1
 # 모델을 바꾸면 벡터 공간이 달라져 코사인 유사도가 무의미해진다.
 sentence-transformers>=5.0, <6
 transformers>=4.56, <5
+
+# --- 4 리랭킹 (app_gpu*.py) --------------------------------------------------
+# src/rerank_gpu.py — BAAI/bge-reranker-v2-m3 를 sentence-transformers 의
+# CrossEncoder 로 올린다. 위 두 줄이면 충분해서 따로 추가할 것이 없다.
+# GPU 가 없으면 app.py(Gemini 리랭킹)를 쓸 것. CPU 로는 후보 20개에 10~30초 걸린다.
+
+# --- 1,2,6 을 로컬 LLM 으로 돌릴 때 (app_gpu_tabs_Qwen.py) -------------------
+# src/local_llm.py — Qwen/Qwen3-8B 를 device_map="auto" 로 올린다.
+# accelerate 는 transformers 의 extra 라서 하드 의존성이 아니다. 안 깔면
+# device_map 을 쓰는 순간 이렇게 죽는다:
+#     ValueError: Using a `device_map` requires `accelerate`
+# Gemini 판(app.py, app_gpu*.py)만 쓸 거면 없어도 되지만, 순수 파이썬 패키지라
+# 깔아 둬도 부담이 없다.
+accelerate>=1.1.0
+
+# 24GB 보다 작은 GPU 에서 Qwen3-8B 를 4bit 로 올리려면 아래도 필요하다.
+# 그때는 src/local_llm.py 의 load_llm 에 BitsAndBytesConfig 를 넘겨야 한다.
+# (기본은 bf16 이라 필요 없다)
+# bitsandbytes>=0.43
