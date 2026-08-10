@@ -1297,7 +1297,7 @@ with tab_demo:
                 render_expansion(payload)        # 2번
                 progress.info(
                     f"질의를 임베딩해 {selected_document} 색인에서 청크를 찾고 있습니다. "
-                    "(최초 1회는 임베딩 모델을 GPU 에 올리느라 몇 초 더 걸립니다)"
+                    "(예상 시간: 20초)"
                 )
 
             elif stage == "comparison":
