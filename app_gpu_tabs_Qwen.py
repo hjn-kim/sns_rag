@@ -1301,8 +1301,10 @@ with tab_demo:
         lang_code = DOCUMENT_OPTIONS[selected_document]
 
         # 7단계용 실제 정답. data/answer.json 이 QUESTION_OPTIONS 순번(1부터)을
-        # key 로 쓴다. 정답이 없는 질문이면 빈 문자열이 와서 7단계를 건너뛴다.
-        gold = gold_for(QUESTION_OPTIONS.index(selected_question) + 1)
+        # key 로 쓴다. 답변을 검색 문서 언어로 쓰게 했으므로 정답 후보도
+        # lang_code 를 넘겨 그 언어 것으로 받는다 (grade.gold_for 참고).
+        # 정답이 없는 질문이면 빈 목록이 와서 7단계를 건너뛴다.
+        gold = gold_for(QUESTION_OPTIONS.index(selected_question) + 1, lang_code)
 
         # 진행 상태를 한 줄로 보여줄 자리. 단계가 끝날 때마다 문구를 갈아 끼우고
         # 마지막에 지운다.
@@ -1338,7 +1340,7 @@ with tab_demo:
                 render_pooled(payload)                          # 3-2
                 progress.info(
                     f"후보 {len(payload.pooled)}개를 {RERANKER_MODEL} 로 재점수하고 "
-                    "있습니다. (최초 1회는 리랭커를 GPU 에 올리느라 몇 초 더 걸립니다)"
+                    "있습니다."
                 )
 
             elif stage == "rerank":

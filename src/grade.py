@@ -16,6 +16,20 @@ data/answer.json 에 적어 둔 정답 후보들과 6단계 답변을 견줘 맞
     key    app.py 의 QUESTION_OPTIONS 순번(1부터)
     value  정답 후보 목록. 낱말 하나면 문자열로 써도 되고 목록으로 써도 된다.
 
+    순번은 3개씩 한 언어다. 1~3 한국어, 4~6 영어, 7~9 중국어, 10~12 베트남어,
+    13~15 필리핀어, 16~18 러시아어. 같은 주제 3개(사법부 / 전력부 / Power BI)가
+    언어만 바꿔 반복된다.
+
+정답 후보는 검색 문서 언어로 고른다:
+
+    6단계 답변을 검색 문서와 같은 언어로 쓰게 했으므로(answer.py 참고),
+    정답 후보도 그 언어 것을 써야 한다. 한국어 질문으로 러시아어 색인을
+    뒤지면 답이 러시아어로 나오는데 "사법부" 와 맞대면 무조건 오답이 된다.
+
+    그래서 gold_for(순번, lang) 은 순번에서 주제만 떼어내 그 언어 블록의
+    같은 주제로 옮겨 준다. 예: 1번(한국어 사법부 질문) + lang="ru"
+    -> 16번 후보 ["Судебная власть", "судебная система", ...]
+
 판정 규칙 (any-include):
 
     후보 중 **하나라도** 답변 안에 들어 있으면 정답.
@@ -75,6 +89,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 ROOT = Path(__file__).resolve().parent.parent
 ANSWER_PATH = ROOT / "data" / "answer.json"
+
+# data/answer.json 과 QUESTION_OPTIONS 의 블록 순서. 한 언어당 주제 3개씩이다.
+GOLD_LANGS = ("ko", "en", "zh", "vi", "fil", "ru")
+TOPICS_PER_LANG = 3
 
 
 @dataclass
@@ -141,9 +159,32 @@ def load_gold() -> dict[int, tuple[str, ...]]:
     return out
 
 
-def gold_for(index: int) -> list[str]:
-    """순번(1부터)의 정답 후보 목록. 없으면 빈 목록."""
-    return list(load_gold().get(index, ()))
+def gold_index(index: int, lang: str | None = None) -> int:
+    """
+    순번을 검색 문서 언어(lang) 블록의 같은 주제 순번으로 옮긴다.
+
+    주제는 순번을 3으로 나눈 나머지다(사법부 / 전력부 / Power BI). 언어 블록만
+    갈아 끼우면 같은 질문의 그 언어 정답 후보가 나온다.
+
+        gold_index(1,  "ru") -> 16    한국어 사법부 질문 -> 러시아어 사법부 후보
+        gold_index(17, "ko") -> 2     러시아어 전력부 질문 -> 한국어 전력부 후보
+
+    lang 이 없거나 모르는 코드면 순번을 그대로 쓴다.
+    """
+    if not lang or lang not in GOLD_LANGS:
+        return index
+    topic = (index - 1) % TOPICS_PER_LANG
+    return GOLD_LANGS.index(lang) * TOPICS_PER_LANG + topic + 1
+
+
+def gold_for(index: int, lang: str | None = None) -> list[str]:
+    """
+    순번(1부터)의 정답 후보 목록. 없으면 빈 목록.
+
+    lang 에 검색 문서 언어를 주면 그 언어의 후보로 바꿔 준다. 답변을 검색 문서
+    언어로 쓰게 해 두었으므로 화면·채점 모두 lang 을 넘겨야 한다.
+    """
+    return list(load_gold().get(gold_index(index, lang), ()))
 
 
 # --------------------------------------------------------------------------
@@ -237,8 +278,12 @@ def main() -> None:
                         help="1·2·6 단계를 무엇으로 돌릴지 (기본: gemini)")
     parser.add_argument("--method", default="llm", choices=["llm", "rrf", "cross"],
                         help="4 단계 리랭킹 방식 (기본: llm)")
-    parser.add_argument("--lang", default=None, choices=["ko", "en", "zh", "vi", "fil", "ru"],
+    parser.add_argument("--lang", default=None, choices=list(GOLD_LANGS),
                         help="이 언어의 3문항만 채점한다 (기본: 전부)")
+    parser.add_argument("--doc-lang", default=None, choices=list(GOLD_LANGS),
+                        help="모든 문항을 이 색인에서 검색한다 (기본: 질문과 같은 언어)\n"
+                             "교차 언어 검색을 채점할 때 쓴다. 정답 후보도 이 언어 것으로\n"
+                             "바뀐다. 예: --lang ko --doc-lang ru (한국어 질문 -> 러시아어 색인)")
     args = parser.parse_args()
 
     gold = load_gold()
@@ -262,21 +307,25 @@ def main() -> None:
     # --- 파이프라인에 태워 채점 ---------------------------------------------
     from main import run_pipeline
 
-    DOC_LANGS = ["ko", "en", "zh", "vi", "fil", "ru"]   # 3문항씩 한 언어
+    def question_lang(index: int) -> str:
+        """순번 -> 그 질문이 적힌 언어. 3문항씩 한 언어다."""
+        return GOLD_LANGS[(index - 1) // TOPICS_PER_LANG]
 
     targets = (list(range(1, len(options) + 1)) if args.run == "all"
                else [int(args.run)])
     if args.lang:
-        targets = [i for i in targets if DOC_LANGS[(i - 1) // 3] == args.lang]
+        targets = [i for i in targets if question_lang(i) == args.lang]
 
     print(f"채점 {len(targets)}문항 · 1·2·6단계 {args.backend} · "
-          f"4단계 {args.method}")
+          f"4단계 {args.method}"
+          + (f" · 색인 {args.doc_lang} 고정" if args.doc_lang else ""))
 
     rows = []
     for i in targets:
         question = options[i - 1]
-        lang = DOC_LANGS[(i - 1) // 3]
-        result = run_pipeline(question, lang=lang, gold=gold_for(i),
+        # --doc-lang 을 주면 교차 언어 검색이 된다. 답변도 정답 후보도 색인 언어를 따른다.
+        lang = args.doc_lang or question_lang(i)
+        result = run_pipeline(question, lang=lang, gold=gold_for(i, lang),
                               llm_backend=args.backend,
                               rerank_method=args.method)
         gr = result.grade

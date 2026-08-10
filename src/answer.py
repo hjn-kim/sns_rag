@@ -23,15 +23,16 @@ rerank.py 가 고른 청크 5개를 근거로 붙여 Gemini 에게 답을 만들
      s0004#2 같은 id 를 그대로 인용하게 해서 화면에서 근거 청크로 되짚을 수 있게
      한다. citations 를 따로 받아 두면 답변 본문과 별개로 표시할 수 있다.
 
-  4. 언어를 프롬프트에 박지 말 것
+  4. 답은 검색 문서의 언어로 쓸 것
      색인이 언어별로 나뉘어 있어 근거 청크의 언어가 매번 다르다. 그 언어를
-     doc_language 로, 답을 쓸 언어를 answer_language 로 받아 프롬프트에 끼운다.
-     answer_language 를 안 주면 "질문과 같은 언어"로 둔다. 러시아어 색인을
-     한국어로 물었을 때 'судебной системы' 같은 원문이 답에 그대로 나오는 걸
-     막으려는 것이다.
+     doc_language 로 받아 프롬프트에 끼우고, 답변도 기본적으로 그 언어로 쓴다.
+     러시아어 색인을 한국어로 물으면 답도 러시아어로 나온다. 근거에 적힌
+     표기를 그대로 쓰는 편이 번역을 한 겹 더 거치는 것보다 정확하고,
+     7단계 정답 비교도 같은 언어의 정답 후보와 맞대면 된다.
+     질문 언어로 받고 싶으면 answer_language 를 따로 넘긴다.
 
 단독 실행:
-    python src/answer.py --lang ko "두 페이지만 있는 MDA는?"
+    python src/answer.py --lang ru "두 페이지만 있는 MDA는?"                  # 답도 러시아어
     python src/answer.py --lang ru --answer-lang 한국어 "두 페이지만 있는 MDA는?"
 """
 
@@ -56,8 +57,9 @@ DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 # 근거 청크가 어느 언어 색인에서 나왔는지. 호출하는 쪽에서 LANGUAGES[lang] 로 넘긴다.
 DEFAULT_DOC_LANGUAGE = LANGUAGES["ko"]
 
-# 답을 쓸 언어. 특정 언어 이름("한국어" 등)을 넣으면 질문 언어와 무관하게 그 언어로 쓴다.
-DEFAULT_ANSWER_LANGUAGE = "질문과 같은 언어"
+# 답을 쓸 언어. 안 주면 검색 문서(doc_language)와 같은 언어로 쓴다.
+# "질문과 같은 언어" 처럼 이름 대신 조건을 써 넣어도 그대로 프롬프트에 들어간다.
+DEFAULT_ANSWER_LANGUAGE = None
 
 SYSTEM_PROMPT = """당신은 WhatsApp 그룹 채팅 로그를 근거로 질문에 답하는 도우미입니다.
 근거 청크는 {doc_language}로 되어 있고, 답변은 {answer_language}로 씁니다.
@@ -81,10 +83,10 @@ SYSTEM_PROMPT = """당신은 WhatsApp 그룹 채팅 로그를 근거로 질문�
 3. **인용을 다세요.** 답의 근거가 된 청크 id(예: s0004#2)를 citations 에
    빠짐없이 넣으세요. 쓰지 않은 청크는 넣지 마세요.
 
-4. **답변은 전부 {answer_language}로 쓰세요.** 근거 청크가 {doc_language}로
-   되어 있어도 그 언어의 표기를 답변에 그대로 옮기지 마세요. 부처·기관·인물·직책
-   같은 고유명사도 {answer_language}로 번역해서 써주세요.
-   원문 표기를 밝혀야 할 때는 번역어 뒤 괄호 안에 덧붙이세요.
+4. **답변은 전부 {answer_language}로 쓰세요.** 질문이 다른 언어로 들어와도
+   답변 언어는 바꾸지 마세요. 부처·기관·인물·직책 같은 고유명사는 근거 청크에
+   적힌 {answer_language} 표기를 그대로 쓰고, 다른 언어의 표기를 섞지 마세요.
+   근거에 없는 표기로 옮겨 적지 마세요.
 
 5. 답변은 두세 문장으로 짧게 쓰세요. 대화 속 발언을 인용할 때는 발언자
    이름을 함께 적으면 좋습니다."""
@@ -96,15 +98,17 @@ def build_system_prompt(doc_language: str | None = None,
     근거 언어와 답변 언어를 끼운 시스템 프롬프트.
 
     doc_language     근거 청크가 나온 색인의 언어. LANGUAGES[lang] 을 넘긴다.
-    answer_language  답을 쓸 언어. 기본값은 "질문과 같은 언어"라 질문을 따라간다.
-                     "한국어" 처럼 이름을 주면 질문이 무슨 언어든 그 언어로 쓴다.
+    answer_language  답을 쓸 언어. 안 주면 doc_language 를 그대로 쓴다.
+                     "한국어" 처럼 이름을 주면 검색 문서가 무슨 언어든 그 언어로 쓴다.
 
     local_llm.py 도 이 함수를 쓴다. 프롬프트가 한 곳에만 있어야 두 backend 의
     답변이 갈리지 않는다.
     """
+    doc = doc_language or DEFAULT_DOC_LANGUAGE
     return (SYSTEM_PROMPT
-            .replace("{doc_language}", doc_language or DEFAULT_DOC_LANGUAGE)
-            .replace("{answer_language}", answer_language or DEFAULT_ANSWER_LANGUAGE))
+            .replace("{doc_language}", doc)
+            .replace("{answer_language}",
+                     answer_language or DEFAULT_ANSWER_LANGUAGE or doc))
 
 
 RESPONSE_SCHEMA = {
@@ -112,7 +116,7 @@ RESPONSE_SCHEMA = {
     "properties": {
         "answer": {
             "type": "string",
-            "description": "질문에 대한 답. 고유명사까지 전부 지정된 답변 언어로 쓴 두세 문장.",
+            "description": "질문에 대한 답. 고유명사까지 전부 근거 문서와 같은 언어로 쓴 두세 문장.",
         },
         "enough": {
             "type": "boolean",
@@ -185,7 +189,7 @@ def generate_answer(question: str, chunks: list[Hit],
     청크를 근거로 답을 만든다.
 
     doc_language     근거 청크가 나온 색인의 언어 (기본: 한국어).
-    answer_language  답을 쓸 언어 (기본: 질문과 같은 언어).
+    answer_language  답을 쓸 언어 (기본: doc_language 와 같은 언어).
     """
     question = (question or "").strip()
     if not question:
@@ -251,8 +255,8 @@ def main() -> None:
     parser.add_argument("--lang", default="ko", choices=list(LANGUAGES),
                         help="검색할 색인(근거 문서)의 언어 (기본: ko)")
     parser.add_argument("--answer-lang", default=None,
-                        help='답변을 쓸 언어 이름. 예: 한국어 / 영어 '
-                             f'(기본: {DEFAULT_ANSWER_LANGUAGE})')
+                        help="답변을 쓸 언어 이름. 예: 한국어 / 영어 "
+                             "(기본: --lang 과 같은 언어)")
     args = parser.parse_args()
 
     from comparison import search_per_query

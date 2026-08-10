@@ -352,7 +352,7 @@ def main() -> None:
     parser.add_argument("--lang", default="ko", choices=list(LANGUAGES),
                         help="검색할 색인(근거 문서)의 언어 (기본: ko)")
     parser.add_argument("--answer-lang", default=None,
-                        help="답변을 쓸 언어 이름 (기본: 질문과 같은 언어)")
+                        help="답변을 쓸 언어 이름 (기본: --lang 과 같은 언어)")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--device", default=None, help="cpu / cuda (기본: 자동)")
     parser.add_argument("--answer", action="store_true",

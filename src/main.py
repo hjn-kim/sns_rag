@@ -126,8 +126,9 @@ def run_pipeline(question: str, lang: str = "ko",
     4 단계 리랭킹은 rerank_method 로 따로 정한다.
 
     lang 은 검색할 색인의 언어다. 그 언어 이름을 1·2 단계에는 확장 대상 언어로,
-    6 단계에는 근거 문서의 언어로 넘긴다. answer_language 를 주면 6 단계가 질문
-    언어와 무관하게 그 언어로 답한다. 안 주면 질문 언어를 따라간다.
+    6 단계에는 근거 문서의 언어로 넘긴다. 답변도 기본적으로 그 언어로 나온다
+    (러시아어 색인을 한국어로 물으면 답은 러시아어). 7 단계 정답 후보도 같은
+    언어 것으로 넘겨야 한다. 질문 언어로 받고 싶으면 answer_language 를 준다.
 
     on_stage(단계이름, 결과) 를 주면 단계가 끝날 때마다 부른다. 단계이름은
     "rewrite" / "comparison" / "rerank" / "answer" / "grade" 다. 화면이 결과를
@@ -226,7 +227,7 @@ def main() -> None:
                         help="검색할 색인(근거 문서)의 언어 (기본: ko)")
     parser.add_argument("--answer-lang", default=None,
                         help="6단계 답변을 쓸 언어 이름. 예: --answer-lang 한국어\n"
-                             "(기본: 질문과 같은 언어)")
+                             "(기본: --lang 과 같은 언어 = 검색 문서 언어)")
     parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K,
                         help=f"질의당 검색할 청크 수 (기본: {DEFAULT_TOP_K})")
     parser.add_argument("--final-n", type=int, default=FINAL_TOP_N,
