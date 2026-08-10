@@ -4,18 +4,6 @@ GPU 판 데모 앱  -  app.py 와 4단계(리랭킹)만 다르다.
     app.py       리랭킹을 Gemini 로 한다. CPU 로도 돌아간다.
     app_gpu.py   리랭킹을 BAAI/bge-reranker-v2-m3 로 직접 계산한다. GPU 가 필요하다.
 
-크로스인코더는 질의와 청크를 한 입력으로 붙여 통째로 읽고 관련성 점수를 낸다.
-따로 벡터를 만들어 비교하는 검색 단계(bi-encoder)보다 정확하지만 느려서, 후보가
-20개로 줄어든 뒤에만 쓴다.
-
-Gemini 방식과 견줘 잃는 것은 판단 근거 문장이다. 크로스인코더는 숫자 하나만
-내므로 4번 카드의 '판단 근거' 칸에는 설명 대신 확률과 logit 이 들어간다.
-대신 API 호출이 하나 줄어 리랭킹이 4~5초에서 1초 미만으로 짧아진다.
-
-CPU 에서는 쓰지 말 것. 후보 20개 x 500토큰 재점수가 10~30초 걸린다.
-그 환경에서는 app.py 를 쓴다.
-
-    streamlit run app_gpu.py --server.address 0.0.0.0 --server.port 8501
 """
 
 import sys
@@ -44,7 +32,7 @@ RERANK_METHOD = "cross"
 # set_page_config 는 다른 st.* 호출보다 반드시 먼저 와야 한다.
 # (제목은 스타일이 주입된 뒤 아래 "화면" 절에서 그린다)
 st.set_page_config(
-    page_title="문서 AI 모델 결과 (GPU)",
+    page_title="메신저 AI 모델 데모 (GPU)",
     page_icon="🔎",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -823,7 +811,7 @@ st.markdown(
 # ---------------------------------------------------------
 # 화면
 # ---------------------------------------------------------
-st.markdown('<h1 class="main-title">문서 AI 모델 결과</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">메신저 AI 모델 데모</h1>', unsafe_allow_html=True)
 st.markdown(
     '<p class="subtitle">Multi-Query, harrier-oss-v1, BAAI/bge-reranker-v2-m3, LLM</span></p>',
     unsafe_allow_html=True,

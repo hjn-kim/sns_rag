@@ -1,3 +1,4 @@
+import json
 import sys
 from html import escape
 from pathlib import Path
@@ -5,7 +6,8 @@ from pathlib import Path
 import streamlit as st
 
 # src/ 를 임포트 경로에 넣는다 (앱은 프로젝트 루트에서 실행한다)
-sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+ROOT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT_DIR / "src"))
 from grade import gold_for  # noqa: E402
 from main import PipelineResult, run_pipeline  # noqa: E402
 from multi_query import RewriteResult  # noqa: E402
@@ -467,6 +469,304 @@ def dev_payload(result: PipelineResult) -> dict:
 
 
 # ---------------------------------------------------------
+# 데이터셋 & 모델 탭
+#
+# 하드코딩하지 않고 실제 파일을 읽어 센다. 데이터를 다시 만들면 화면도 따라온다.
+# 탭은 숨어 있어도 매번 실행되므로 (Streamlit 이 서버에서 다 그린 뒤 CSS 로
+# 감춘다) 파일 읽기는 반드시 캐시한다.
+# ---------------------------------------------------------
+
+CHUNK_ROOT = ROOT_DIR / "data" / "whatsapp_chat_language"
+EMB_ROOT = ROOT_DIR / "data" / "emb"
+
+# 데이터셋 출처. url 을 채우면 링크로 걸리고, 비워두면 설명만 나온다.
+DATASET_SOURCE = {
+    "name": "ObinnaIheanachor / Whatsapp-Chat-project",
+    "file": "WhatsappChat.csv",
+    "note": "Resagratia WhatsApp 그룹 채팅 로그 · MIT License",
+    "url": "https://github.com/ObinnaIheanachor/Whatsapp-Chat-project",
+}
+
+# 파이프라인이 도는 순서 그대로.
+MODELS = [
+    ("질문 재질의 · 확장", "Gemini API",
+     "gemini-3.1-flash-lite · 한 번의 호출로 재작성 1개 + 확장 3개"),
+    ("임베딩", "harrier",
+     "microsoft/harrier-oss-v1-0.6b · 1024차원"),
+    ("검색", "Cosine similarity",
+     "벡터가 L2 정규화돼 있어 내적이 곧 코사인 유사도"),
+    ("리랭킹", "bge-reranker-v2-m3",
+     "BAAI · 질문-청크 쌍을 직접 채점하는 크로스 인코더"),
+    ("답변", "Gemini API",
+     "gemini-3.1-flash-lite · 선정된 청크만 근거로"),
+]
+
+# 데이터셋 개요. 값은 실측이지만 설명 문구는 고정이라 여기 둔다.
+NEXT_STEPS = [
+    ("발화 단위 청킹",
+     "발화 N개를 하나의 청크로 구성하는 방식을 검토. 대화 구조를 보존할 수 있지만 "
+     "발화 길이가 1~1109자로 다양하여 청크별 정보량 불균형 문제 발생 가능."),
+    ("하이브리드 청킹방식",
+     "N개+500토큰을 기준으로 청크를 구성. "
+     "다음 발화를 추가할 경우 500토큰을 초과하면 해당 발화부터 다음 청크를 시작."),
+    ("pgvector 추가",
+     "pgvector를 도입하여 벡터 검색과 함께 문서, 세션, 화자, 시간 등 "
+     "메타데이터 기반 필터링 기능을 추가."),
+    ("질문-정답셋 확대",
+     "질의 재작성·확장 및 리랭킹 전략 변경 시 실제 검색 성능이 개선되는지 "
+     "Recall@K, nDCG@K 등의 지표로 비교할 수 있도록 평가셋을 확대."),
+    ("데이터 규모 확대",
+     "여러 문서와 대화가 함께 존재하는 환경에서도 관련 근거를 정확히 검색할 수 있는지 "
+     "검증하기 위해 데이터 규모를 확대."),
+     ("캐시 기능","반복 질의에 대한 임베딩·검색·LLM 호출 결과를 재사용하여 응답 속도 향상 및 API 비용 절감.")
+]
+
+
+@st.cache_data(show_spinner=False)
+def corpus_stats() -> dict:
+    """청크 JSON 을 훑어 세션·메시지·기간을 센다. 언어와 무관하므로 한 벌만 읽는다."""
+    folder = CHUNK_ROOT / "Whatsapp_chat_en"
+    sessions, messages, chars, speakers = 0, 0, 0, set()
+    started, ended = [], []
+    for path in sorted(folder.glob("s*.json")):
+        try:
+            with path.open(encoding="utf-8") as fp:
+                s = json.load(fp)
+        except (OSError, json.JSONDecodeError):
+            continue
+        sessions += 1
+        messages += int(s.get("numberOfUtterances", 0))
+        speakers.update(s.get("participants", []))
+        # 화자 이름표를 뺀 발화 본문만 센다 ("이름: 내용" 에서 내용 쪽)
+        for line in s.get("text", "").split("\n"):
+            chars += len(line.split(": ", 1)[-1])
+        if s.get("startedAt"):
+            started.append(s["startedAt"])
+        if s.get("endedAt"):
+            ended.append(s["endedAt"])
+    return {
+        "sessions": sessions,
+        "messages": messages,
+        "chars": chars,
+        "speakers": len(speakers),
+        "start": min(started)[:10] if started else "-",
+        "end": max(ended)[:10] if ended else "-",
+    }
+
+
+RAW_CSV = ROOT_DIR / "data" / "old" / "WhatsappChat.csv"
+
+# 미리보기에 보낼 줄 수. 전체를 통째로 보내면 브라우저가 그만큼 다 그리느라
+# 탭 전환이 눅눅해진다. 앞부분만 잘라도 구조를 보여주기엔 충분하다.
+PREVIEW_LINES = 100
+
+
+@st.cache_data(show_spinner=False)
+def raw_preview(n_lines: int = PREVIEW_LINES) -> tuple[str, int]:
+    """전처리 전 원본 CSV 의 앞부분. (본문, 전체 줄 수)"""
+    if not RAW_CSV.exists():
+        return "", 0
+    try:
+        text = RAW_CSV.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return "", 0
+    lines = text.splitlines()
+    return "\n".join(lines[:n_lines]), len(lines)
+
+
+@st.cache_data(show_spinner=False)
+def index_stats() -> list[dict]:
+    """언어별 .npz 를 읽어 청크 수 / 차원 / 토큰을 센다."""
+    import numpy as np
+
+    rows = []
+    for code, label in [(v, k) for k, v in DOCUMENT_OPTIONS.items()]:
+        folder = EMB_ROOT / code
+        if not folder.is_dir():
+            continue
+        chunks = tokens = dim = 0
+        files = sorted(folder.glob("*.npz"))
+        for path in files:
+            try:
+                with np.load(path, allow_pickle=False) as z:
+                    n, d = z["embeddings"].shape
+                    chunks += int(n)
+                    tokens += int(z["token_count"].sum())
+                    dim = int(d)
+            except Exception:  # noqa: BLE001 - 깨진 파일은 건너뛴다
+                continue
+        rows.append({
+            "언어": label,
+            "코드": code,
+            "세션": len(files),
+            "청크": chunks,
+            "세션당 청크": round(chunks / len(files), 1) if files else 0,
+            "토큰": f"{tokens:,}",
+            "차원": dim,
+        })
+    return rows
+
+
+def _kv_table(pairs: list[tuple[str, str]]) -> str:
+    """항목 | 값 두 칸짜리 표."""
+    rows = "".join(
+        f'<tr><td class="dkey">{k}</td><td>{v}</td></tr>' for k, v in pairs
+    )
+    return f'<table class="dtable"><tbody>{rows}</tbody></table>'
+
+
+def render_dataset_tab() -> None:
+    corpus = corpus_stats()
+    rows = index_stats()
+
+    # ---- 데이터셋 -------------------------------------------------------
+    st.markdown('<div class="dhead">데이터셋</div>', unsafe_allow_html=True)
+
+    preview, total_lines = raw_preview()
+    if preview:
+        shown = min(PREVIEW_LINES, total_lines)
+        st.markdown(
+            f'<div class="dpreview-label">원본 · '
+            f'<code>{escape(RAW_CSV.relative_to(ROOT_DIR).as_posix())}</code> '
+            f'— 전체 {total_lines:,}줄 중 앞 {shown}줄</div>',
+            unsafe_allow_html=True,
+        )
+        # 줄을 접지 않는다(wrap_lines 기본 False). CSV 는 한 줄이 한 행이라
+        # 접으면 행 구분이 무너진다. 대신 가로로 스크롤된다.
+        st.code(preview, language="text", height=640, line_numbers=True)
+        st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
+
+    overview = _kv_table([
+        ("기간", f"{corpus['start']} ~ {corpus['end']} (2개월)"),
+        ("메시지", f"{corpus['messages']:,}개"),
+        ("언어", "영어"),
+        ("내용", "업무 전달 / 작업 분담 / 워크숍 공지 / QnA"),
+        ("화자", f"{corpus['speakers']}명 — 이름 5명, 전화번호 27명"),
+        ("글자", f"{corpus['chars']:,}자"),
+    ])
+    src = DATASET_SOURCE
+    link = (f' · <a href="{escape(src["url"])}" target="_blank">'
+            f'{escape(src["url"])}</a>') if src["url"] else ""
+    source_html = (
+        f'<div class="dsource"><b>출처</b> · {escape(src["name"])}'
+        f'<div class="dsource-sub">{escape(src["file"])} — '
+        f'{escape(src["note"])}{link}</div></div>'
+    )
+
+    st.markdown(
+        f"""
+        <div class="result-card">
+            <div class="dtitle">데이터셋 정보</div>
+            <div class="ddesc">                부트캠프에서 문서를 Power BI 로 시각화하는 프로젝트를 함께 진행한 사람들의 그룹 대화입니다.
+                </div>
+            {overview}
+            {source_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
+
+    # ---- 전처리 ---------------------------------------------------------
+    st.markdown(
+        f"""
+        <div class="result-card">
+            <div class="dtitle">전처리</div>
+            {_kv_table([
+                ("세션 분할",
+                 "6시간 이상의 공백 발생 시 다른 주제로 판단하여 세션 분리 "
+                 f"(세션 {corpus['sessions']}개)"),
+                ("청킹",
+                 "500 / 100토큰 — 세션 내부에서만 500토큰마다 청크 분리"),
+                ("노이즈 제거",
+                 "&lt;Media omitted&gt;, 삭제된 메시지, URL 만 남은 메시지 제거"),
+                ("화자",
+                 "청크 본문에 [원문이름]: 형태로 붙여"
+                 " 발화자 정보 보존"),
+                ("메타데이터",
+                 "청크마다 세션 ID · 시작/종료 시각 · 참여자 목록 · 토큰 위치를 "
+                 "함께 저장합니다. 벡터에는 들어가지 않습니다."),
+            ])}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
+
+    # ---- 언어별 색인 ----------------------------------------------------
+    if rows:
+        head = ("<tr><th>언어</th><th>코드</th><th class='num'>세션</th>"
+                "<th class='num'>청크</th><th class='num'>세션당 청크</th>"
+                "<th class='num'>토큰</th><th class='num'>차원</th></tr>")
+        body = "".join(
+            f"<tr><td class='dkey'>{r['언어']}</td><td>{r['코드']}</td>"
+            f"<td class='num'>{r['세션']}</td><td class='num'>{r['청크']}</td>"
+            f"<td class='num'>{r['세션당 청크']}</td>"
+            f"<td class='num'>{r['토큰']}</td><td class='num'>{r['차원']}</td></tr>"
+            for r in rows
+        )
+        st.markdown(
+            f"""
+            <div class="result-card">
+                <div class="dtitle">언어별 색인</div>
+                <table class="dtable">
+                    <thead>{head}</thead><tbody>{body}</tbody>
+                </table>
+                <div class="ddesc" style="margin-top:.9rem">같은 대화인데도 언어마다
+                    청크 수가 다릅니다. 한국어는 토큰당 글자 수가 적어(약 1.7자/토큰)
+                    같은 내용이 더 많은 토큰이 되고 그만큼 잘게 쪼개집니다.
+                    교차 언어 검색 결과를 비교할 때 감안해야 합니다.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.warning(
+            f"임베딩 폴더가 비어 있습니다: {EMB_ROOT}\n\n"
+            "`python data/data_src/embedding.py --data <청크폴더> --out <출력폴더>`"
+        )
+
+    st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
+
+    # ---- 모델 -----------------------------------------------------------
+    body = "".join(
+        f'<tr><td class="dkey">{escape(role)}</td>'
+        f'<td class="dmodel">{escape(name)}</td>'
+        f'<td class="dnote">{escape(note)}</td></tr>'
+        for role, name, note in MODELS
+    )
+    st.markdown(
+        f"""
+        <div class="result-card">
+            <div class="dtitle">모델</div>
+            <table class="dtable">
+                <thead><tr><th>단계</th><th>모델</th><th>비고</th></tr></thead>
+                <tbody>{body}</tbody>
+            </table>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
+
+    # ---- 다음 단계 ------------------------------------------------------
+    body = "".join(
+        f'<tr><td class="dkey">{i}. {escape(title)}</td>'
+        f'<td>{escape(desc)}</td></tr>'
+        for i, (title, desc) in enumerate(NEXT_STEPS, 1)
+    )
+    st.markdown(
+        f'<div class="result-card">'
+        f'<div class="dtitle">다음 단계</div>'
+        f'<table class="dtable"><tbody>{body}</tbody></table></div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ---------------------------------------------------------
 # 스타일
 # ---------------------------------------------------------
 st.markdown(
@@ -779,6 +1079,99 @@ st.markdown(
             color: #3B5BDB;
         }
 
+        /* ---- 데이터셋 & 모델 탭 ------------------------------------
+           데모 탭보다 한 단계 크게 잡는다. 여기는 훑어보는 화면이 아니라
+           읽는 화면이고, 발표 중에 화면을 띄워 놓고 보는 일이 많다. */
+        .dhead {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.6rem;
+        }
+        .dtitle {
+            font-size: 1.35rem;
+            font-weight: 750;
+            margin-bottom: 0.5rem;
+        }
+        .ddesc {
+            font-size: 1.02rem;
+            line-height: 1.7;
+            color: #475467;
+            margin-bottom: 1.1rem;
+        }
+
+        .dtable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+        .dtable th {
+            background: #F2F4F7;
+            color: #475467;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-align: left;
+            padding: 0.6rem 0.9rem;
+            border-bottom: 1px solid #D0D5DD;
+        }
+        .dtable td {
+            padding: 0.72rem 0.9rem;
+            border-bottom: 1px solid #EAECF0;
+            vertical-align: top;
+        }
+        .dtable tr:last-child td { border-bottom: none; }
+        .dtable td.dkey {
+            width: 190px;
+            font-weight: 700;
+            color: #344054;
+            background: #FCFCFD;
+            white-space: nowrap;
+        }
+        /* 모델 이름은 초록 <code> 대신 굵은 본문 크기로. 작아서 안 보였다 */
+        .dtable td.dmodel {
+            font-weight: 700;
+            font-size: 1.05rem;
+            white-space: nowrap;
+        }
+        .dtable td.dnote {
+            color: #667085;
+            font-size: 0.95rem;
+        }
+        .dtable .num, .dtable th.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 원본 JSON 미리보기 라벨 */
+        .dpreview-label {
+            font-size: 0.98rem;
+            color: #475467;
+            margin-bottom: 0.45rem;
+        }
+        .dpreview-label code {
+            font-size: 0.92rem;
+            color: #344054;
+            background: #F2F4F7;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+        }
+
+        /* 표 바로 아래 붙는 출처 */
+        .dsource {
+            margin-top: 1rem;
+            padding-top: 0.85rem;
+            border-top: 1px solid #EAECF0;
+            font-size: 0.98rem;
+            color: #475467;
+        }
+        .dsource-sub {
+            margin-top: 0.25rem;
+            font-size: 0.92rem;
+            color: #98A2B3;
+        }
+        .dsource a { color: #3B5BDB; }
+
         div.stButton > button {
             height: 3rem;
             font-size: 1rem;
@@ -794,129 +1187,137 @@ st.markdown(
 # ---------------------------------------------------------
 # 화면
 # ---------------------------------------------------------
-st.markdown('<h1 class="main-title">메신저 AI 모델 데모</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">문서 AI 모델 결과</h1>', unsafe_allow_html=True)
 st.markdown(
-    '<p class="subtitle">Multi-Query, harrier-oss-v1, Reranking, LLM</p>',
+    '<p class="subtitle">Multi-Query, microsoft/harrier-oss-v1, Reranking, LLM</p>',
     unsafe_allow_html=True,
 )
 
-st.markdown("#### 처리 단계")
+tab_demo, tab_data = st.tabs(["🔎  데모", "📚  데이터셋 & 모델"])
 
-pipeline_columns = st.columns(len(PIPELINE_STEPS), gap="small")
-for index, (column, step_name) in enumerate(
-    zip(pipeline_columns, PIPELINE_STEPS),
-    start=1,
-):
-    with column:
-        st.markdown(
-            f"""
-            <div class="pipeline-card">
-                <div class="pipeline-number">STEP {index}</div>
-                <div class="pipeline-name">{step_name}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+# `with` 는 새 스코프를 만들지 않는다. selected_document 같은 이름은 그대로
+# 모듈 전역이라 render_query_table 이 예전처럼 읽을 수 있다.
+with tab_demo:
+    st.markdown("#### 처리 단계")
 
-st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
-
-with st.form("rag_search_form", clear_on_submit=False):
-    left, right = st.columns([3, 2], gap="large")
-
-    with left:
-        st.markdown(
-            '<div class="section-label">1. 질문 선택</div>',
-            unsafe_allow_html=True,
-        )
-        selected_question = st.selectbox(
-            label="질문",
-            options=QUESTION_OPTIONS,
-            label_visibility="collapsed",
-        )
-
-    with right:
-        st.markdown(
-            '<div class="section-label">2. 검색 문서 선택</div>',
-            unsafe_allow_html=True,
-        )
-        selected_document = st.selectbox(
-            label="검색 문서",
-            options=list(DOCUMENT_OPTIONS.keys()),
-            label_visibility="collapsed",
-        )
-
-    st.write("")
-    search_clicked = st.form_submit_button(
-        "검색",
-        type="primary",
-        use_container_width=True,
-    )
-
-
-if search_clicked:
-    lang_code = DOCUMENT_OPTIONS[selected_document]
-
-    # 7단계용 실제 정답. data/answer.json 이 QUESTION_OPTIONS 순번(1부터)을
-    # key 로 쓴다. 정답이 없는 질문이면 빈 문자열이 와서 7단계를 건너뛴다.
-    gold = gold_for(QUESTION_OPTIONS.index(selected_question) + 1)
-
-    # 진행 상태를 한 줄로 보여줄 자리. 단계가 끝날 때마다 문구를 갈아 끼우고
-    # 마지막에 지운다.
-    progress = st.empty()
-    progress.info("Gemini 로 질의를 재작성하고 있습니다.")
-
-    # 3-1 표의 열 이름을 붙이려면 재작성 결과가 필요하다. 콜백끼리 넘기기 위해
-    # 바깥 dict 에 담아 둔다.
-    state: dict = {}
-
-    def on_stage(stage: str, payload) -> None:
-        """
-        파이프라인이 한 단계 끝낼 때마다 불린다. 끝난 단계부터 바로 그린다.
-
-        전체가 20초 넘게 걸리는데 다 끝나야 첫 카드가 뜨면 멈춘 것처럼 보인다.
-        Streamlit 은 st.* 호출을 그때그때 프런트로 보내므로 여기서 그리면 된다.
-        """
-        if stage == "rewrite":
-            state["rewrite"] = payload
-            render_rewrite(payload)          # 1번
-            render_expansion(payload)        # 2번
-            progress.info(
-                f"질의를 임베딩해 {selected_document} 색인에서 청크를 찾고 있습니다. "
-                "(예상 시간: 20초)"
+    pipeline_columns = st.columns(len(PIPELINE_STEPS), gap="small")
+    for index, (column, step_name) in enumerate(
+        zip(pipeline_columns, PIPELINE_STEPS),
+        start=1,
+    ):
+        with column:
+            st.markdown(
+                f"""
+                <div class="pipeline-card">
+                    <div class="pipeline-number">STEP {index}</div>
+                    <div class="pipeline-name">{step_name}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-
-        elif stage == "comparison":
-            state["comparison"] = payload
-            render_query_table(payload, state["rewrite"])   # 3-1
-            render_pooled(payload)                          # 3-2
-            progress.info(
-                f"후보 {len(payload.pooled)}개를 Gemini 로 리랭킹하고 있습니다."
-            )
-
-        elif stage == "rerank":
-            state["rerank"] = payload
-            render_rerank(payload)           # 4번
-            render_selected(payload)         # 5번
-            progress.info("근거를 읽고 답변을 만들고 있습니다.")
-
-        elif stage == "answer":
-            render_answer(payload)           # 6번
-            if gold:
-                progress.info("실제 정답과 견주고 있습니다.")
-            else:
-                progress.empty()
-
-        elif stage == "grade":
-            progress.empty()
-            render_grade(payload)            # 7번
-
-    result = run_pipeline(selected_question, lang=lang_code,
-                          gold=gold, on_stage=on_stage)
-
-    for stage_name, message in result.errors().items():
-        st.warning(f"{stage_name} 단계가 실패했습니다. {message}")
 
     st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
 
-    with st.expander("개발용 데이터 보기"):
-        st.json(dev_payload(result))
+    with st.form("rag_search_form", clear_on_submit=False):
+        left, right = st.columns([3, 2], gap="large")
+
+        with left:
+            st.markdown(
+                '<div class="section-label">1. 질문 선택</div>',
+                unsafe_allow_html=True,
+            )
+            selected_question = st.selectbox(
+                label="질문",
+                options=QUESTION_OPTIONS,
+                label_visibility="collapsed",
+            )
+
+        with right:
+            st.markdown(
+                '<div class="section-label">2. 검색 문서 선택</div>',
+                unsafe_allow_html=True,
+            )
+            selected_document = st.selectbox(
+                label="검색 문서",
+                options=list(DOCUMENT_OPTIONS.keys()),
+                label_visibility="collapsed",
+            )
+
+        st.write("")
+        search_clicked = st.form_submit_button(
+            "검색",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if search_clicked:
+        lang_code = DOCUMENT_OPTIONS[selected_document]
+
+        # 7단계용 실제 정답. data/answer.json 이 QUESTION_OPTIONS 순번(1부터)을
+        # key 로 쓴다. 정답이 없는 질문이면 빈 문자열이 와서 7단계를 건너뛴다.
+        gold = gold_for(QUESTION_OPTIONS.index(selected_question) + 1)
+
+        # 진행 상태를 한 줄로 보여줄 자리. 단계가 끝날 때마다 문구를 갈아 끼우고
+        # 마지막에 지운다.
+        progress = st.empty()
+        progress.info("Gemini 로 질의를 재작성하고 있습니다.")
+
+        # 3-1 표의 열 이름을 붙이려면 재작성 결과가 필요하다. 콜백끼리 넘기기 위해
+        # 바깥 dict 에 담아 둔다.
+        state: dict = {}
+
+        def on_stage(stage: str, payload) -> None:
+            """
+            파이프라인이 한 단계 끝낼 때마다 불린다. 끝난 단계부터 바로 그린다.
+
+            전체가 20초 넘게 걸리는데 다 끝나야 첫 카드가 뜨면 멈춘 것처럼 보인다.
+            Streamlit 은 st.* 호출을 그때그때 프런트로 보내므로 여기서 그리면 된다.
+            """
+            if stage == "rewrite":
+                state["rewrite"] = payload
+                render_rewrite(payload)          # 1번
+                render_expansion(payload)        # 2번
+                progress.info(
+                    f"질의를 임베딩해 {selected_document} 색인에서 청크를 찾고 "
+                    "있습니다. (예상 시간: 20초)"
+                )
+
+            elif stage == "comparison":
+                state["comparison"] = payload
+                render_query_table(payload, state["rewrite"])   # 3-1
+                render_pooled(payload)                          # 3-2
+                progress.info(
+                    f"후보 {len(payload.pooled)}개를 Gemini 로 리랭킹하고 있습니다."
+                )
+
+            elif stage == "rerank":
+                state["rerank"] = payload
+                render_rerank(payload)           # 4번
+                render_selected(payload)         # 5번
+                progress.info("근거를 읽고 답변을 만들고 있습니다.")
+
+            elif stage == "answer":
+                render_answer(payload)           # 6번
+                if gold:
+                    progress.info("실제 정답과 견주고 있습니다.")
+                else:
+                    progress.empty()
+
+            elif stage == "grade":
+                progress.empty()
+                render_grade(payload)            # 7번
+
+        result = run_pipeline(selected_question, lang=lang_code,
+                              gold=gold, on_stage=on_stage)
+
+        for stage_name, message in result.errors().items():
+            st.warning(f"{stage_name} 단계가 실패했습니다. {message}")
+
+        st.markdown('<div class="section-gap"></div>', unsafe_allow_html=True)
+
+        with st.expander("개발용 데이터 보기"):
+            st.json(dev_payload(result))
+
+
+with tab_data:
+    render_dataset_tab()
