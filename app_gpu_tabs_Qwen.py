@@ -541,7 +541,7 @@ DATASET_SOURCE = {
 
 # 파이프라인이 도는 순서 그대로.
 MODELS = [
-    ("질문 재질의 · 확장", "Qwen3-8B (로컬)",
+    ("질문 재질의 · 확장", "Qwen3-8B",
      f"{LLM_MODEL} · 한 번의 생성으로 재작성 1개 + 확장 3개 (GPU, bf16 약 16GB)"),
     ("임베딩", "harrier",
      "microsoft/harrier-oss-v1-0.6b · 1024차원 · Qwen3 아키텍처 기반"),
@@ -549,7 +549,7 @@ MODELS = [
      "벡터가 L2 정규화돼 있어 내적이 곧 코사인 유사도"),
     ("리랭킹", "bge-reranker-v2-m3",
      f"{RERANKER_MODEL} · 질문-청크 쌍을 직접 채점하는 크로스 인코더 (GPU)"),
-    ("답변", "Qwen3-8B (로컬)",
+    ("답변", "Qwen3-8B",
      f"{LLM_MODEL} · 선정된 청크만 근거로 · 재질의와 같은 인스턴스를 재사용"),
 ]
 
@@ -764,9 +764,8 @@ def render_dataset_tab() -> None:
                     <thead>{head}</thead><tbody>{body}</tbody>
                 </table>
                 <div class="ddesc" style="margin-top:.9rem">같은 대화인데도 언어마다
-                    청크 수가 다릅니다. 한국어는 토큰당 글자 수가 적어(약 1.7자/토큰)
-                    같은 내용이 더 많은 토큰이 되고 그만큼 잘게 쪼개집니다.
-                    교차 언어 검색 결과를 비교할 때 감안해야 합니다.</div>
+                    청크 수가 다릅니다.
+                    교차 언어 검색 결과를 비교할 때 감안해야할 부분입니다.</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -1238,8 +1237,7 @@ st.markdown(
 # ---------------------------------------------------------
 st.markdown('<h1 class="main-title">메신저 AI 모델 데모</h1>', unsafe_allow_html=True)
 st.markdown(
-    f'<p class="subtitle">Multi-Query, harrier-oss-v1, bge-reranker-v2-m3, Qwen3-8B'
-    f' <span class="tag">전 단계 로컬 실행 · API 키 불필요</span></p>',
+    f'<p class="subtitle">Qwen3-8B, harrier-oss-v1, bge-reranker-v2-m3',
     unsafe_allow_html=True,
 )
 
