@@ -50,6 +50,13 @@ data/answer.json 에 적어 둔 정답 후보들과 6단계 답변을 견줘 맞
     python src/grade.py                 # 정답표를 QUESTION_OPTIONS 와 대조만
     python src/grade.py --run 1         # 1번 질문을 파이프라인에 태우고 채점
     python src/grade.py --run all       # 18개 전부 + 정답률
+
+    # 앱과 같은 설정으로 채점하려면 백엔드를 맞춰야 한다.
+    #   app.py                  --backend gemini --method llm     (기본값)
+    #   app_gpu_tabs.py         --backend gemini --method cross
+    #   app_gpu_tabs_Qwen.py    --backend qwen   --method cross
+    python src/grade.py --run all --backend qwen --method cross
+    python src/grade.py --run all --backend qwen --method cross --lang ko
 """
 
 from __future__ import annotations
@@ -226,6 +233,12 @@ def main() -> None:
     )
     parser.add_argument("--run", default=None,
                         help="채점할 질문 순번(1~18) 또는 all.\n없으면 정답표만 훑는다")
+    parser.add_argument("--backend", default="gemini", choices=["gemini", "qwen"],
+                        help="1·2·6 단계를 무엇으로 돌릴지 (기본: gemini)")
+    parser.add_argument("--method", default="llm", choices=["llm", "rrf", "cross"],
+                        help="4 단계 리랭킹 방식 (기본: llm)")
+    parser.add_argument("--lang", default=None, choices=["ko", "en", "zh", "vi", "fil", "ru"],
+                        help="이 언어의 3문항만 채점한다 (기본: 전부)")
     args = parser.parse_args()
 
     gold = load_gold()
@@ -253,12 +266,19 @@ def main() -> None:
 
     targets = (list(range(1, len(options) + 1)) if args.run == "all"
                else [int(args.run)])
+    if args.lang:
+        targets = [i for i in targets if DOC_LANGS[(i - 1) // 3] == args.lang]
+
+    print(f"채점 {len(targets)}문항 · 1·2·6단계 {args.backend} · "
+          f"4단계 {args.method}")
 
     rows = []
     for i in targets:
         question = options[i - 1]
         lang = DOC_LANGS[(i - 1) // 3]
-        result = run_pipeline(question, lang=lang, gold=gold_for(i))
+        result = run_pipeline(question, lang=lang, gold=gold_for(i),
+                              llm_backend=args.backend,
+                              rerank_method=args.method)
         gr = result.grade
         rows.append((i, lang, gr))
 
@@ -266,13 +286,24 @@ def main() -> None:
         print(f"\n[{mark}] {i:>2}번 ({lang})  {gr.verdict}   {result.elapsed:.1f}초")
         print(f"     LLM 정답  : {gr.llm_answer[:110]}")
         print(f"     실제 정답 : {gr.gold_display}")
+        # 단계별 실패는 조용히 넘어가면 정답률만 보고 원인을 못 찾는다.
+        for stage, message in result.errors().items():
+            print(f"     [!] {stage} 실패: {message[:90]}")
 
     if len(rows) > 1:
         n_ok = sum(1 for _, _, g in rows if g.correct)
-        print(f"\n정답 {n_ok}/{len(rows)}")
+        print(f"\n정답 {n_ok}/{len(rows)}  "
+              f"({args.backend} · {args.method})")
         wrong = [f"{i}({lang})" for i, lang, g in rows if not g.correct]
         if wrong:
             print(f"틀린 문항: {', '.join(wrong)}")
+
+        # 언어별로 나눠 보면 특정 언어의 번역 품질 문제인지 구분된다.
+        by_lang: dict[str, list[bool]] = {}
+        for _, lang, g in rows:
+            by_lang.setdefault(lang, []).append(g.correct)
+        print("언어별: " + "  ".join(
+            f"{lang} {sum(v)}/{len(v)}" for lang, v in by_lang.items()))
 
 
 if __name__ == "__main__":
