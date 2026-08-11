@@ -24,7 +24,7 @@ bge-m3 로 dense 벡터를 만들어 파일마다 .npz 하나를 남긴다.
 
 사용 예:
     python data/data_src/embedding_bge_txt.py --dry-run     # 청킹 결과만 확인
-    python data/data_src/embedding_bge_txt.py               # 전체 (512/124)
+    python data/data_src/embedding_bge_txt.py               # 전체 (512/128)
     python data/data_src/embedding_bge_txt.py --limit 5     # 파일당 앞 5청크만
     python data/data_src/embedding_bge_txt.py --data data/ko마약류관리에관한법률.txt
     python data/data_src/embedding_bge_txt.py --batch-size 32 --device cuda
@@ -57,7 +57,7 @@ DEFAULT_OUT = REPO_ROOT / "data" / "emb_bge_m3"
 DEFAULT_MODEL = "BAAI/bge-m3"
 
 DEFAULT_CHUNK_SIZE = 512
-DEFAULT_OVERLAP = 124
+DEFAULT_OVERLAP = 128
 
 # .txt 안이 JSON 일 때 본문으로 볼 key 후보 (순서대로 찾는다)
 TEXT_KEY_CANDIDATES = ("text", "content", "body")
@@ -115,7 +115,7 @@ def chunk_by_tokens(text: str, tokenizer, size: int, overlap: int) -> list[dict]
     """
     토큰 size 개씩, 앞 청크와 overlap 개를 겹치도록 자른다.
 
-    슬라이딩 간격(stride)은 size - overlap 이다. 512/124 -> 388 씩 전진.
+    슬라이딩 간격(stride)은 size - overlap 이다. 512/128 -> 388 씩 전진.
     """
     if overlap >= size:
         sys.exit(f"--overlap({overlap}) 은 --chunk-size({size}) 보다 작아야 합니다.")
